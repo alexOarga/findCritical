@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+
+
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>FindCritical</title>
+
+		<!-- jQuery -->
+		<script
+			  src="https://code.jquery.com/jquery-3.4.1.min.js"
+			  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+			  crossorigin="anonymous"></script>
+
+		<!-- Bootstrap -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+		<script src="{% static 'view.js' %}"></script>
+		<script src="{% static 'model.js' %}"></script>
+		<script src="{% static 'controller.js' %}"></script>
+
+		 <script>
+
+			var ws_scheme_dispatch = window.location.protocol == "https:" ? "wss" : "ws";
+			var ws_path_dispatch = ws_scheme_dispatch + '://' + window.location.host + '/ws';
+			console.log("Conectando a " + ws_path_dispatch)
+			var dispatch_socket = new WebSocket(ws_path_dispatch);
+
+			dispatch_socket.onopen = function () {
+				dispatch_socket.send(JSON.stringify("ping")); // Send the message 'Ping' to the server
+			};
+
+
+
+			$( document ).ready(function() {
+				this.model = new app.Model();
+				this.view = new app.View();
+				this.controller = new app.Controller(this.model, this.view, dispatch_socket);
+
+			});
+		</script>
+
+		<style>
+			.page{
+				width: 50%;
+				margin: auto;
+			}
+			.subpage{
+				margin-top: 80px;
+			}
+			#div-main{
+				margin: auto;
+				width: 70%;
+				background-color: white;
+				padding: 10px;
+			}
+			#title{
+				text-align: center;
+				margin-top: 20px;
+			}
+			#subtitle{
+				margin-top: 50px;
+				text-align: center;
+				color:gray;
+			}
+			#button-github{
+				margin: 4px;
+			}
+			.text{
+				margin-top: 80px;
+				margin-left: 40px;
+			}
+			.wide-button{
+				width: 96%;
+				padding: 8px 28px;
+				margin: 2%;
+				font-size: 20px;
+			}
+			.twocol-button{
+				width:100%;
+				padding: 8px 28px;
+				font-size: 20px;
+			}
+			#error-loading{
+				width: 50%;
+				margin: auto;
+			}
+			.center-image{
+			  display: block;
+			  margin-left: auto;
+			  margin-right: auto;
+			  width: 30%;
+			}
+			.maincol{
+				 display: table-cell;
+			}
+			#maincontainer{
+				display: table;
+				height: 100%;
+			}
+		</style>
+
+  </head>
+  <body>
+
+	<div class="page" id="page-upload">
+		<button type="button" class="btn btn-outline-info" id="button-github"><i class="fa fa-github"></i> Github</button>
+		<h1 id="subtitle">Find critical points in genome-scale metabolic models</h1>
+
+		<div class="container">
+			<h5 class="text">Select SBML model to upload</h5>
+			<form action="" method="post" enctype="multipart/form-data" id="ajax-upload">
+				<input class="wide-button" id="select" type="file" name="fileToUpload" id="fileToUpload">
+				<input class="btn btn-primary wide-button" id="sumbit" type="submit" value="Upload Model" name="submit">
+			</form>
+		</div>
+	</div>
+
+	<div class="page" id="error-loading" style="display: none;">
+		<button type="button" class="btn btn-outline-info" id="button-github"><i class="fa fa-github"></i> Github</button>
+		<h5 class="text">Error loading model...</h5>
+		<h6 id="error-text-read"></h6>
+		<button type="button" class="btn btn-danger wide-button" id="retry-upload">Retry</button>
+	</div>
+
+	<div class="page" id="loading" style="display: none;">
+		<button type="button" class="btn btn-outline-info" id="button-github"><i class="fa fa-github"></i> Github</button>
+		<h5 class="text">Loading model...</h5>
+		<h6 id="loading-text"></h6>
+		 <img src="{% static 'loading.gif' %}" alt="Loading animation" class="center-image"> 
+		<button type="button" class="btn btn-secondary wide-button" id="cancel-upload">Cancel</button>
+	</div>
+
+	<div class="page" id="main" style="display: none;">
+		<button type="button" class="btn btn-outline-info" id="button-github"><i class="fa fa-github"></i> Github</button>
+		<div class="container subpage">
+			<div class="row">
+				<div class="col-4">
+					<button type="button" class="btn btn-outline-primary" id="change-model"><i class='fa fa-arrow-left'></i> Change Model</button>
+				</div>
+				<div class="col-8">
+					<p class="title" id="model-info"></p>
+				</div>
+			</div>
+		</div>
+		<div class="container" style="margin-top:20px;" id="maincontainer">
+			<div class="row">
+				<div class="col maincol">
+					<div class="card" id="cardleft">
+					  <div class="card-body">
+					    <h5 class="card-title">Save results</h5>
+					    <p class="card-text">Generate spreadsheet file with model data, dead-end Metabolites, chokepoints reactions and if feasible essential genes and reactions.</p>
+					    <button type="button" id="bt-spread" class="btn btn-primary" style="width: 96%;">Generate Spreadsheet</button>
+					  </div>
+					</div>
+				</div>
+				<div class="col maincol">
+					<div class="card" id="cardright">
+					  <div class="card-body">
+					    <h5 class="card-title">Save models</h5>
+					    <p class="card-text">Export new model as a SBML file.</p>
+					    <button type="button" id="bt-dem" class="btn btn-primary" style="width: 96%;">Save model withoud Dead End Metabolites</button>
+					    <button type="button" id="bt-fva" class="btn btn-primary" style="margin-top:5px; width: 96%;">Save Model updated with Flux Variability Analysis</button>
+					    <button type="button" id="bt-fvadem" class="btn btn-primary" style="margin-top:5px; width: 96%;">Save Model updated with Flux Variability Analysis without Dead End Metabolites</button>
+					  </div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="page" id="work" style="display: none;">
+		<button type="button" class="btn btn-outline-info" id="button-github"><i class="fa fa-github"></i> Github</button>
+		<h4 class="text" id="task">Task</h4>
+		<div class="wide-button" id="log" style="height: 200px; overflow-y: scroll; background-color: lightgray; border-radius: 4px; border-style: solid;  border-width: thin; border-color: gray; font-family: 'Courier New', Courier, monospace; font-size: 15px;">
+		  test<br />
+		</div>
+		<button type="button" class="btn btn-secondary wide-button" id="cancel-work">Cancel</button>
+	</div>
+
+
+	<div class="page" id="done" style="display: none;">
+		<button type="button" class="btn btn-outline-info" id="button-github"><i class="fa fa-github"></i> Github</button>
+	
+		<h5 style="text-align: center; margin-top:80px;"><i class="fa fa-check-square-o" style="font-size: 30px; color: green;"></i> File succesfully generated</h5>
+
+		<div class="container" style="margin-top:80px;">
+			<div class="row">
+				<div class="col-6">
+					<button type="button" class="btn btn-outline-primary twocol-button" id="run-other-task"><i class='fa fa-arrow-left'></i> Run another task</button>
+				</div>
+				<div class="col-6">
+					 <a type="button" class="btn btn-primary twocol-button" href="http://127.0.0.1:8000/app/download_file/" id="download" download><i class="fa fa-cloud-download"></i> Download</a>
+				</div>
+			</div>
+		</div>
+
+		
+	</div>
+
+	<div class="page" id="error-working" style="display: none;">
+		<button type="button" class="btn btn-outline-info" id="button-github"><i class="fa fa-github"></i> Github</button>
+		<h5 class="text">Something went wrong...</h5>
+		<h6 id="error-text-work" style="padding:20px;"></h6>
+		<button type="button" class="btn btn-danger wide-button" id="retry-work"><i class='fa fa-arrow-left'></i> Back</button>
+	</div>
+
+   
+  </body>
+	
+</html>

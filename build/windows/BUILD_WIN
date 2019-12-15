@@ -1,0 +1,5 @@
+sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows "apt-get update -y && apt-get install -y wget && pip install -r requirements_WIN.txt && pyinstaller --windowed  -y --dist ./dist/windows --workpath /tmp run_GUI_WIN.spec"
+
+
+
+sudo cp dist/windows/run_GUI/Qt5Core.dll dist/windows/run_GUI/PyQt5/Qt/bin/

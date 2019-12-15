@@ -1,0 +1,7 @@
+Django==2.2.2
+django-cors-headers==3.0.2
+asgi-redis==1.0.0
+daphne==0.12.1
+celery==4.0.2
+channels==1.0.2
+redis==2.10.5
