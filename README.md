@@ -3,6 +3,7 @@
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
 ## Table of Contents
+- [Download](#Download)
 - [Install](#install)
  	- [CLI/GUI](#CLI/GUI)
  	- [WEB](#WEB)
@@ -14,7 +15,13 @@
 - [Contributing](#contributing)
 - [License](#license)
 
-## Install
+## Download
+### Windows
+[TODO](TODO)
+### Linux
+[TODO](TODO)
+
+## Install source
 
 ### CLI/GUI
 ```sh
@@ -26,7 +33,7 @@ $ pip3 install -r build/requirements.txt
 $ pip3 install -r main/WEB/requirements.txt
 ```
 
-## Usage
+## Run source
 ### CLI
 ```sh
 $ python3 /main/CLI/FindCritical.py [-h] [-v] -i <input file> 
