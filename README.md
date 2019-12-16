@@ -17,9 +17,9 @@
 
 ## Download
 ### Windows
-[TODO](TODO)
+[windows.zip](https://github.com/alexOarga/findCritical/raw/master/release/windows.zip)
 ### Linux
-[TODO](TODO)
+[linuz.zip](https://github.com/alexOarga/findCritical/raw/master/release/linux.zip)
 
 ## Install source
 
