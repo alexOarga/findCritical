@@ -4,10 +4,10 @@
 
 ## Table of Contents
 - [Download](#Download)
-- [Install](#install)
+- [Install source requirements](#Install source requirements)
  	- [CLI/GUI](#CLI/GUI)
  	- [WEB](#WEB)
-- [Usage](#usage)
+- [Run source](#Run source)
  	- [CLI](#CLI)
  	- [GUI](#GUI)
  	- [WEB](#WEB)
@@ -19,9 +19,9 @@
 ### Windows
 [windows.zip](https://github.com/alexOarga/findCritical/raw/master/release/windows.zip)
 ### Linux
-[linuz.zip](https://github.com/alexOarga/findCritical/raw/master/release/linux.zip)
+[linux.zip](https://github.com/alexOarga/findCritical/raw/master/release/linux.zip)
 
-## Install source
+## Install source requirements
 
 ### CLI/GUI
 ```sh
