@@ -2,24 +2,24 @@
 
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
+## Download
+### Windows
+[windows.zip](https://github.com/alexOarga/findCritical/raw/master/release/windows.zip)
+### Linux
+[linux.zip](https://github.com/alexOarga/findCritical/raw/master/release/linux.zip)
+
+# Source
 ## Table of Contents
-- [Download](#Download)
 - [Install source requirements](#Install)
  	- [CLI/GUI](#CLI/GUI)
  	- [WEB](#WEB)
-- [Run source](#Run)
+- [Run](#Run)
  	- [CLI](#CLI)
  	- [GUI](#GUI)
  	- [WEB](#WEB)
 - [Maintainers](#maintainers)
 - [Contributing](#contributing)
 - [License](#license)
-
-## Download
-### Windows
-[windows.zip](https://github.com/alexOarga/findCritical/raw/master/release/windows.zip)
-### Linux
-[linux.zip](https://github.com/alexOarga/findCritical/raw/master/release/linux.zip)
 
 ## Install source requirements
 
@@ -33,7 +33,7 @@ $ pip3 install -r build/requirements.txt
 $ pip3 install -r main/WEB/requirements.txt
 ```
 
-## Run source
+## Run
 ### CLI
 ```sh
 $ python3 /main/CLI/FindCritical.py [-h] [-v] -i <input file> 
