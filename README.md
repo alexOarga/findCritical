@@ -4,10 +4,10 @@
 
 ## Table of Contents
 - [Download](#Download)
-- [Install source requirements](#Install source requirements)
+- [Install source requirements](#Install)
  	- [CLI/GUI](#CLI/GUI)
  	- [WEB](#WEB)
-- [Run source](#Run source)
+- [Run source](#Run)
  	- [CLI](#CLI)
  	- [GUI](#GUI)
  	- [WEB](#WEB)
