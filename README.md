@@ -4,9 +4,9 @@
 
 ## Download
 ### Windows
-[windows.zip](https://github.com/alexOarga/findCritical/raw/master/release/windows.zip)
+[windows-v1.0.0.zip](https://github.com/alexOarga/findCritical/releases/download/v1.0.0/windows.zip)
 ### Linux
-[linux.zip](https://github.com/alexOarga/findCritical/raw/master/release/linux.zip)
+[linux-v1.0.0.zip](https://github.com/alexOarga/findCritical/releases/download/v1.0.0/linux.zip)
 
 # Source
 ## Table of Contents
