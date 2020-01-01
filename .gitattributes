@@ -1,2 +1,0 @@
-release/linux.zip filter=lfs diff=lfs merge=lfs -text
-release/windows.zip filter=lfs diff=lfs merge=lfs -text
