@@ -16,6 +16,19 @@
 import sphinx_rtd_theme
 
 
+# The suffix(es) of source filenames.
+# You can specify multiple suffix as a list of string:
+#
+# source_suffix = ['.rst', '.md']
+source_suffix = '.rst'
+
+# The encoding of source files.
+#
+# source_encoding = 'utf-8-sig'
+
+# The master toctree document.
+master_doc = 'index'
+
 # -- Project information -----------------------------------------------------
 
 project = 'findCritical'
@@ -44,8 +57,6 @@ language = 'python'
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
-
-master_doc = 'index'
 
 # -- Options for HTML output -------------------------------------------------
 
