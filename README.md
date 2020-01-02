@@ -2,6 +2,8 @@
 
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
+[![Documentation Status](https://readthedocs.org/projects/findcritical/badge/?version=latest)](https://findcritical.readthedocs.io/en/latest/?badge=latest)
+
 ## Download
 ### Windows
 [windows-v1.0.0.zip](https://github.com/alexOarga/findCritical/releases/download/v1.0.0/windows.zip)
