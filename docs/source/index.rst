@@ -10,7 +10,7 @@ Welcome to findCritical's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+Not avaible yet.
 
 Indices and tables
 ==================
