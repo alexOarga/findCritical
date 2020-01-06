@@ -7,16 +7,9 @@ Welcome to findCritical's documentation!
 ========================================
 
 .. toctree::
-   :maxdepth: 4
-   :caption: Contents:
-   
-   user-documentation
-   developer-documentation
-   project-documentation
+    :maxdepth: 4
+    :glob:
 
-Indices and tables
-==================
+    developer-documentation
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. only:: html
