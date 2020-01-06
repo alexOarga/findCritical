@@ -1,14 +1,14 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="none" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="none" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>CORE &mdash; findCritical  documentation</title>
+  <title>CORE &mdash; findCritical version 74c13c5</title>
   
 
   
@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="User Guide" href="user-documentation.html" /> 
+    <link rel="prev" title="Welcome to findCritical’s documentation!" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,9 +80,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="user-documentation.html">User Guide</a></li>
+              <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">CORE</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#Import-core-modules">Import core modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Read-metabolic-model">Read metabolic model</a></li>
@@ -156,7 +154,7 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/developer-documentation.ipynb.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/developer-documentation.ipynb" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -391,7 +389,7 @@ div.rendered_html tbody tr:hover {
     text-align: unset;
 }
 </style>
-Developer documentation
+# Developer documentation
 =======================<div class="section" id="CORE">
 <h1>CORE<a class="headerlink" href="#CORE" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Import-core-modules">
@@ -701,12 +699,12 @@ ura_e       |  e                |  EX_ura_e
 <div class="section" id="Removing-dead-end-metabolites">
 <h3>Removing dead-end metabolites<a class="headerlink" href="#Removing-dead-end-metabolites" title="Permalink to this headline">¶</a></h3>
 <p>Method <code class="docutils literal notranslate"><span class="pre">remove_dem()</span></code> removes dead-end metabolites from the model. Once dead-end metabolites are deleted, some reactions might not produce a metabolite anymore so the method deletes also these reactions and loops again until no dead-end metabolite is found:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="n">number</span> <span class="n">of</span> <span class="n">metabolites</span> <span class="n">doesnt</span> <span class="n">change</span><span class="p">:</span>
-    <span class="n">delete</span> <span class="nb">all</span> <span class="n">dead</span><span class="o">-</span><span class="n">end</span> <span class="n">metabolites</span>
-    <span class="k">for</span> <span class="n">reaction</span> <span class="n">that</span> <span class="n">produced</span> <span class="ow">or</span> <span class="n">consumed</span> <span class="n">dead</span><span class="o">-</span><span class="n">end</span> <span class="n">metabolites</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">reaction</span> <span class="n">produces</span> <span class="ow">or</span> <span class="n">consumes</span> <span class="mi">0</span> <span class="n">metabolites</span> <span class="p">[</span><span class="ow">and</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">exchange</span> <span class="n">nor</span> <span class="n">demand</span><span class="p">]:</span>
-            <span class="n">delete</span> <span class="n">reaction</span>
-    <span class="n">find</span> <span class="n">dead</span><span class="o">-</span><span class="n">end</span> <span class="n">metabolites</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>while number of metabolites doesnt change:
+    delete all dead-end metabolites
+    for reaction that produced or consumed dead-end metabolites:
+        if reaction produces or consumes 0 metabolites [and is not exchange nor demand]:
+            delete reaction
+    find dead-end metabolites
 </pre></div>
 </div>
 <p>The reactions that are deleted on the method can be modified by the following params:</p>
@@ -920,7 +918,7 @@ METABOLITE ID |  METABOLITE NAME                           | REACTION ID | REACT
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="user-documentation.html" class="btn btn-neutral float-left" title="User Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to findCritical’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
