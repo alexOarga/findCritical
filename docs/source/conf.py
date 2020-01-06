@@ -51,7 +51,12 @@ extensions = [
     "sphinx.ext.autosummary",
     "autoapi.extension",
     "nbsphinx",
+    'autoapi.extension',
 ]
+
+# Document Python Code
+autoapi_type = 'python'
+autoapi_dirs = '../../'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
