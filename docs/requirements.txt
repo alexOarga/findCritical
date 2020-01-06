@@ -1,3 +1,4 @@
+Sphinx==2.3.1
 sphinx_rtd_theme
 ipykernel
 nbsphinx
