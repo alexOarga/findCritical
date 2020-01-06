@@ -11,6 +11,5 @@ Welcome to findCritical's documentation!
     :glob:
 
     developer-documentation
-    2.6_calc_discrete_systems
 
 .. only:: html
