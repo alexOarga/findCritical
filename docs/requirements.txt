@@ -1,5 +1,9 @@
-Sphinx==2.3.1
 sphinx_rtd_theme
 ipykernel
+numpy
+matplotlib
+pandas
+sphinxcontrib-bibtex
+sphinxcontrib-svg2pdfconverter
+ipywidgets
 nbsphinx
-sphinx-autoapi
