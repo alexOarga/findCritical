@@ -21,16 +21,16 @@ highlight_language = 'none'
 html_sourcelink_suffix = ''
 
 # Execute notebooks before conversion: 'always', 'never', 'auto' (default)
-#nbsphinx_execute = 'never'
+nbsphinx_execute = 'never'
 
 # Use this kernel instead of the one stored in the notebook metadata:
-#nbsphinx_kernel_name = 'python3'
+nbsphinx_kernel_name = 'python3'
 
 # List of arguments to be passed to the kernel that executes the notebooks:
 #nbsphinx_execute_arguments = ['--InlineBackend.figure_formats={"png", "pdf"}']
 
 # If True, the build process is continued even if an exception occurs:
-#nbsphinx_allow_errors = True
+nbsphinx_allow_errors = True
 
 # Controls when a cell will time out (defaults to 30; use -1 for no timeout):
 #nbsphinx_timeout = 60
@@ -44,11 +44,6 @@ html_sourcelink_suffix = ''
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-html_logo = 'img/logo.svg'
-html_theme_options = {
-    'logo_only': True,
-    'display_version': False,
-}
 
 # If window is narrower than this, input/output prompts are on separate lines:
 #nbsphinx_responsive_width = '700px'
