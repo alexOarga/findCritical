@@ -39,10 +39,25 @@ class AbstractMetabolicModel(ABC):
 
 	@abstractmethod
 	def objective(self):
+		""" Returns the objective function of the model
+
+		"""
+		pass
+
+	@abstractmethod
+	def set_objective(self, reaction):
+		""" Sets the reaction param as the objective function of the model
+
+		:param reaction: reaction to set as objective
+		"""
 		pass
 
 	@abstractmethod
 	def objective_value(self):
+		pass
+
+	@abstractmethod
+	def compartments(self):
 		pass
 
 	@abstractmethod
@@ -114,6 +129,14 @@ class AbstractMetabolicModel(ABC):
 			verbose (): Print the reusult of the f.v.a.
 			update_flux (): Update the upper and lower bounds of the reactions with the ones obtained
 							with the f.v.a.
+		"""
+		pass
+
+
+	@abstractmethod
+	def get_growth(self):
+		""" Runs Flux Balance Analysis on the model and returns the objective value.
+
 		"""
 		pass
 

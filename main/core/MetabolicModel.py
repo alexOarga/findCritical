@@ -28,8 +28,14 @@ class MetabolicModel(AbstractMetabolicModel):
 	def id(self):
 		return self.__model.id()
 
+	def compartments(self):
+		return self.__model.compartments()
+
 	def objective(self):
 		return self.__model.objective()
+
+	def set_objective(self, reaction):
+		self.__model.set_objective(reaction)
 
 	def objective_value(self):
 		return self.__model.objective_value()
@@ -67,8 +73,8 @@ class MetabolicModel(AbstractMetabolicModel):
 	def find_chokepoints(self):
 		return self.__model.find_chokepoints()
 	
-	def remove_dem(self, remove_exchange=False):
-		self.__model.remove_dem(remove_exchange)
+	def remove_dem(self, delete_exchange=False, keep_all_incomplete_reactions=True):
+		self.__model.remove_dem(delete_exchange, keep_all_incomplete_reactions)
 
 	def fva(self, loopless=False, verbose=False, update_flux=False, threshold=None, pfba_factor=None):
 		return self.__model.fva(loopless, verbose, update_flux, threshold, pfba_factor)
@@ -78,6 +84,9 @@ class MetabolicModel(AbstractMetabolicModel):
 
 	def find_essential_genes_reactions(self):
 		return self.__model.find_essential_genes_reactions()
+
+	def get_growth(self):
+		return self.__model.get_growth()
 
 	def find_essential_reactions_1(self):
 		self.__model.find_essential_reactions_1()

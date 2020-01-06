@@ -8,6 +8,7 @@ from math import isnan
 
 from cobra.io.sbml import validate_sbml_model
 from cobra.flux_analysis import flux_variability_analysis
+from cobra.manipulation import delete
 from cobra.manipulation.delete import find_gene_knockout_reactions
 from cobra.flux_analysis.deletion import single_reaction_deletion
 from cobra.flux_analysis import find_essential_reactions
@@ -38,11 +39,18 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 
 	Attributes
 		__cobra_model (): Cobra model of the metabolic network. Class: cobra.core.model.
+
+		__objective_value(): float that saves the result of running Flux Balance Analysis on the model.
+			The value initially is None.
+
 		__dem (): Dict containing the dead end metabolites of the model.
-			Key: compartments of the model.
-			Values: list of cobra.core.metabolites containing the dead end metabolites of the compartment.
+			- Key: compartments of the model.
+			- Values: list of cobra.core.metabolites containing the dead end metabolites of the compartment.
+			If the method find_dem() hasnt been called the value of the attribute is None.
+
 		__chokepoints (): List of objects _MetaboliteReact containing chokepoint reactions of the network.
-		__dem_before_fva (): Definition like 'dem' intended to save old D.E.M. before F.V.A.
+			If the methos find_chokepoints() hasn't been called the value is None.
+
 		__fva (): List of tuples (cobra.core.reaction, maximun, minimum) containing the result of the Flux Variability Analysis.
 		__essential_genes (): List of cobra.core.gene containing the essential genes of the model.
 		__essential_genes_reactions (): Dict containing the reactions associated to the essential genes.
@@ -74,8 +82,6 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 	def model(self):
 		return self.__cobra_model
 
-
-
 	def set_state(self, key):
 		builder = CobraMetabolicStateBuilder()
 		self.__states[key] = builder.buildState(self)
@@ -84,7 +90,6 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		if key not in self.__states:
 			raise Exception("Couldn't find state: '" + key + "'. State doesn't exist")
 		return self.__states[key]
-
 
 	def id(self):
 		return self.__cobra_model.id
@@ -95,23 +100,73 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 	def objective_value(self):
 		return self.__objective_value
 
+	def set_objective(self, reaction):
+		""" Sets the objective function of the cobra model as the reactions passed as parameter.
+
+		:param reaction: reaction id of a cobra.core.reaction object
+		:type reaction: str
+		:raises: RuntimeError: if the reaction id cant be found on the cobra model.
+		"""
+		try:
+			reaction_obj = self.__cobra_model.reactions.get_by_id(reaction)
+			self.__cobra_model.objective = str(reaction_obj.id)
+		except KeyError as error:
+			raise RuntimeError("Reaction id can't be found on the model.")
+
+	def compartments(self):
+		""" Return list with compartments
+
+		:return: list with compartments short name
+		:rtype: list of str
+		"""
+		return list(self.__cobra_model.compartments.keys())
+
+
 	def reactions(self):
+		""" Return list with reactions
+
+		:return: list with the reactions of the model
+		:rtype:  list of cobra.core.reaction
+		"""
 		return self.__cobra_model.reactions
 
+
 	def metabolites(self):
+		""" Return list with metabolites
+
+		:return: list with the metabolites of the model
+		:rtype:  list of cobra.core.metabolite
+		"""
 		return self.__cobra_model.metabolites
 
+
 	def dem(self):
+		""" Returns a dict with compartments and its dead-end metabolites if they have been calculated. Dict has
+			the following structure:
+				- key: compartment name (can be obtained with 'compartments()' method).
+				- value: list with objects cobra.core.metabolite that represent the dead-end of the compartment.
+
+		:return: dict with dead-end metabolite by compartment.
+		:rtype: dict({ str : list([cobra.core.metabolites]) })
+		:raises: Exception: if dead-end hasnt been calculated.
+		"""
 		if self.__dem is not None:
 			return self.__dem
 		else:
 			raise Exception("Dead End metabolites hasn't been calculated. Please run 'find_dem()'.")
 
+
 	def chokepoints(self):
+		""" Returns a list of tuples of (cobra.core.reaction, cobra.core.metabolite) containing the chokepoint reactions of the model.
+
+		:return: list of tuples (reaction, metabolite) of chokepoint reactions and the metabolite they consume/produce.
+		:rtype: list( tuple( cobra.core.reaction, cobra.core.metabolite ) )
+		"""
 		if self.__chokepoints is not None:
-			return self.__chokepoints
+			return [(mtb_rct.reaction, mtb_rct.metabolite) for mtb_rct in self.__chokepoints]
 		else:
 			raise Exception("Chokepoint reactions hasn't been calculated. Please run 'find_chokepoints()'.")
+
 
 	def get_fva(self):
 		if self.__fva is not None:
@@ -140,9 +195,6 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		else:
 			raise Exception("Essential reactions hasn't been calculated. Please run 'find_essential_reactions_1()'.")
 
-
-
-
 	def __id(self, e):
 		return e.id
 
@@ -168,15 +220,14 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 
 
 	def read_model(self, path):
-		"""
-		TODO:
-		CLEAN CODE
-
-		"""
 		""" Reads a cobra model from a file. Assigns it to __cobra_model attribute.
 
 		Args:
 			path (): File direction of the cobra model
+
+		:raises RuntimeError: if the input file format is not .xml, .json or .yml.
+		:raises FileNotFoundError: if the input file can't be found.
+		:raises Exception: if cobrapy throws an exception reading the model (model has errors).
 		"""
 		original_stderr = sys.stderr  # keep a reference to STDERR
 		sys.stderr = NullDevice()  # redirect the real STDERR
@@ -194,7 +245,7 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 				sys.stderr = original_stderr  # turn STDERR back on
 				raise RuntimeError("Model file must be either .xml .json .yml")
 
-			# generate exchange/demand reactions list
+			# Generate exchange/demand reactions list
 			exchanges = self.__cobra_model.exchanges
 			demands = self.__cobra_model.demands
 			self.__exchange_demand_reactions = set(exchanges).union(set(demands))
@@ -279,8 +330,10 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			When searched, it saves them in the '__dem' class atribute with the compartment as a key and
 			a list of cobra.core.metabolite as value representing the DEM of that compartment.
 
-		Args:
-			compartment (): String representing the compartment in which the search is made. "ALL" by default
+		:param compartment: String representing the compartment in which the search is made. "ALL" by default
+		:type compartment: str
+		:return: dict with dead - end metabolites by compartment.
+		:rtype: dict({str: list([cobra.core.metabolites])})
 		"""
 		if self.__dem == None:
 			self.__dem = {}
@@ -339,10 +392,12 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 	def find_dem(self, compartment="ALL"):
 		""" Finds the dead end metabolites of the model or a specific comparment.
 			When searched, it saves them in the '__dem' class atribute with the compartment as a key and
-			a list of cobra.core.metabolite as value representing the D.E.M. of that compartment.
+			a list of cobra.core.metabolite as value representing the DEM of that compartment.
 
-		Args:
-			compartment (): String representing the compartment in which the search is made. "ALL" by default
+		:param compartment: String representing the compartment in which the search is made. "ALL" by default
+		:type compartment: str
+		:return: dict with dead - end metabolites by compartment.
+		:rtype: dict({str: list([cobra.core.metabolites])})
 		"""
 		if self.__dem == None:
 			self.__dem = {}
@@ -409,8 +464,8 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		""" Class composed by a metabolite and a reaction containing it.
 
 		Attributes
-			metabolite (): Class cobra.core.metabolite
-			reaction (): Class cobra.core.reaction
+			metabolite : Class cobra.core.metabolite
+			reaction : Class cobra.core.reaction
 		"""
 
 		def __init__(self, metabolite, reaction):
@@ -497,8 +552,8 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 				j = j + 1
 			else:  # mtb1 = mtb2	Metabolites are the same
 				# Pairing the 2 metabolites
-				num1 = 1	# Number of times de first metabolite appears
-				num2 = 1	# Number of times the second metabolite appears
+				num1 = 1 # Number of times de first metabolite appears
+				num2 = 1 # Number of times the second metabolite appears
 				i = i + 1
 				j = j + 1
 				while i < len(reactants) and reactants[i].metabolite.id == mtb1:
@@ -519,41 +574,64 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		return chokepoints
 
 
-	def __remove_dem(self, remove_exchange=False):
+	def __remove_dem(self, delete_exchange=False, keep_all_incomplete_reactions=True):
+		""" Auxiliar method for 'remove_dem()'
+
+		"""
 		while True:
 			dem = list(itertools.chain.from_iterable(self.__dem.values()))
 			num_mtbs = len(self.__cobra_model.metabolites)
 			self.__cobra_model.remove_metabolites(dem)
 			reactions = []
 			# Delete the reactions that doesnt produce or doesnt consume
-			if remove_exchange:
+			if delete_exchange:
 				for reaction in self.__cobra_model.reactions:
 					if len(reaction.reactants) == 0 or len(reaction.products) == 0:
 						reactions.append(reaction)
 			else:
-				for reaction in self.__cobra_model.reactions:
-					if (len(reaction.reactants) == 0 or len(reaction.products) == 0) and (reaction not in self.__exchange_demand_reactions):
-						reactions.append(reaction)
+				if keep_all_incomplete_reactions:
+					for reaction in self.__cobra_model.reactions:
+						if (len(reaction.reactants) == 0 or len(reaction.products) == 0) and (reaction not in self.__exchange_demand_reactions):
+							reactions.append(reaction)
+				else:
+					exchange_and_demand = set(exchanges).union(set(demands))
+					for reaction in self.__cobra_model.reactions:
+						if (len(reaction.reactants) == 0 or len(reaction.products) == 0) and (reaction not in exchange_and_demand):
+							reactions.append(reaction)
 			self.__cobra_model.remove_reactions(reactions)
 			self.find_dem()
 			# Loop continues while the number of metabolites doenst change
 			if num_mtbs == len(self.__cobra_model.metabolites):
 				break
 
-	def remove_dem(self, remove_exchange=False):
+	def remove_dem(self, delete_exchange=False, keep_all_incomplete_reactions=True):
 		""" While there network changes, eliminates dead ends metabolites
 			and reactions that only produce or consume
 
+			- delete_exchange:
+				- True: all the reactions that are produce or consume 0 metabolites are deleted whether they are exchange/demand or not.
+				- False: deleted according to 'keep_all_incomplete_reactions' param.
+			- keep_all_incomplete_reactions:
+				- False: if a reactions is in [cobra Boundary reactions](https://cobrapy.readthedocs.io/en/latest/media.html#Boundary-reactions) (calculated by heuristics) that reaction can't be deleted.
+				- True: if a reaction initially doesn't produce or consume any metabolite that reaction can't be deleted.
+
+		:param delete_exchange: if True exchange and demand reactions are deleted
+		:type delete_exchange: bool
+		:param keep_all_incomplete_reactions: If True all reactions that initially dont consume or dont produce any
+				metabolite are kept.
+		:type keep_all_incomplete_reactions: bool
+		:return:
+		:rtype:
 		"""
 
 		self.__check_dem()
 
-		if remove_exchange == True:
-			self.__remove_dem(True)
+		if delete_exchange == True:
+			self.__remove_dem(True, keep_all_incomplete_reactions)
 		elif len(self.__cobra_model.exchanges) == 0:
-			self.__remove_dem(True)
+			self.__remove_dem(True, keep_all_incomplete_reactions)
 		else:
-			self.__remove_dem(False)
+			self.__remove_dem(False, keep_all_incomplete_reactions)
 
 
 
@@ -605,13 +683,22 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 				errors.append(str(error))
 		return errors
 
-	def get_growth(self, model):
+
+	def get_growth(self):
+		""" Runs flux balance analysis (slim_optimize() from cobrapy) and returns the objective value.
+			Saves the objective value in __objective_value attribute.
+
+		:return: objective value
+		:rtype: float
+		"""
+		model = self.__cobra_model
 		try:
 			if 'moma_old_objective' in model.solver.variables:
 				model.slim_optimize()
 				growth = model.solver.variables.moma_old_objective.primal
 			else:
 				growth = model.slim_optimize()
+			self.__objective_value = growth
 		except SolverError:
 			growth = float('nan')
 		except Exception as timeout:
@@ -622,7 +709,7 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 	def find_essential_reactions_1(self):
 		errors = []
 		try:
-			self.__objective_value = self.get_growth(self.__cobra_model)
+			self.__objective_value = self.get_growth()
 			if isnan(self.__objective_value):
 				self.__objective_value = None
 			self.__essential_reactions = {}
@@ -683,7 +770,7 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 
 
 	def print_model_info(self):
-		"""
+		""" Prints model general info
 
 		"""
 		print("MODEL INFO")
@@ -711,13 +798,13 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		if ordered:
 			metabolites.sort(key=self.__id)
 		print("MODEL: ", self.__cobra_model.id, " - NUMBER OF METABOLITES: ", len(self.__cobra_model.metabolites))
-		print("METABOLITE".ljust(10), " | ", "COMPARTMENT".ljust(15), " | ", "REACTION")
+		print("METABOLITE".ljust(10), " | ", "COMPARTMENT".ljust(15), " | ", "REACTION ID")
 		print('-' * 55)
 		for metabolite in metabolites:
-			print(metabolite.id.ljust(10), " | ", metabolite.compartment.ljust(15), " | ",list(metabolite.reactions)[0].reaction)
+			print(metabolite.id.ljust(10), " | ", metabolite.compartment.ljust(15), " | ",list(metabolite.reactions)[0].id)
 			i = 1
 			while i < len(list(metabolite.reactions)):
-				print("".ljust(10), " | ", "".ljust(15), " | ", list(metabolite.reactions)[i].reaction)
+				print("".ljust(10), " | ", "".ljust(15), " | ", list(metabolite.reactions)[i].id)
 				i = i + 1
 		print()
 
@@ -738,6 +825,7 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		for reaction in reactions:
 			print(reaction.id.ljust(10), " |  ", str(reaction.upper_bound)[:8].ljust(8), " | ", str(reaction.lower_bound)[:9].ljust(9), " | ", reaction.reaction)
 		print()
+
 
 	def print_genes(self, ordered=False):
 		""" If the model has genes prints the essential genes of the model. If essential genes hasn't been searched it
@@ -762,6 +850,7 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 				i = i + 1
 		print()
 
+
 	def print_dem(self, ordered=False, compartment="ALL"):
 		""" Prints dead end metabolites of the cobra model
 
@@ -777,20 +866,19 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		if ordered:
 			metabolites.sort(key=self.__id)
 		print("MODEL: ", self.__cobra_model.id, " - NUMBER OF DEM: ", len(self.__dem), " - COMPARTMENT: ", compartment)
-		print("METABOLITE".ljust(10), " | ", "COMPARTMENT".ljust(15), " | ", "REACTION ID", " | ", "REACTION")
+		print("METABOLITE".ljust(10), " | ", "COMPARTMENT".ljust(15), " | ", "REACTION ID")
 		print('-' * 55)
 		for metabolite in metabolites:
-			print(metabolite.id.ljust(10), " | ", metabolite.compartment.ljust(15), " | ", list(metabolite.reactions)[0].id.ljust(10), " | ", list(metabolite.reactions)[0].reaction)
+			print(metabolite.id.ljust(10), " | ", metabolite.compartment.ljust(15), " | ",list(metabolite.reactions)[0].id)
 			i = 1
 			while i < len(list(metabolite.reactions)):
-				print("".ljust(10), " | ", "".ljust(15) , " | ", list(metabolite.reactions)[0].id.ljust(10), " | ", list(metabolite.reactions)[0].reaction)
+				print("".ljust(10), " | ", "".ljust(15), " | ", list(metabolite.reactions)[i].id)
 				i = i + 1
 		print()
 
 
 	def print_chokepoints(self, ordered=False):
 		""" Prints chokepoints reactions of the cobra model and its consumed/produced metabolites.
-
 
 			Args:
 				ordered (): print the chokepoint reactions in alphabetical order by id
@@ -802,10 +890,10 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		if ordered:
 			chokepoints.sort(key=self.__reaction_id)
 		print("MODEL: ", self.__cobra_model.id, " - NUMBER OF CHOKEPOINTS: ", len(self.__chokepoints))
-		print("METABOLITE ID | METABOLITE NAME | REACTION ID | REACTION NAME")
+		print("METABOLITE ID | ", "METABOLITE NAME".ljust(40), " | REACTION ID | REACTION NAME")
 		print('-' * 60)
 		for mtb_rct in chokepoints:
-			print(mtb_rct.metabolite.id.ljust(12), " | ", mtb_rct.metabolite.name.ljust(13), " | ", mtb_rct.reaction.id.ljust(9)," | ", mtb_rct.reaction.name)
+			print(mtb_rct.metabolite.id.ljust(12), " | ", mtb_rct.metabolite.name.ljust(40), " | ", mtb_rct.reaction.id.ljust(9)," | ", mtb_rct.reaction.name)
 		print()
 
 

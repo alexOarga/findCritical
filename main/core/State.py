@@ -243,8 +243,8 @@ class CobraMetabolicStateBuilder:
 		chokepoints = model.chokepoints()
 		if chokepoints is not None:
 			result = []
-			for mtb_rct in chokepoints:
-				result.append((self.reactions[mtb_rct.reaction.id], self.metabolites[mtb_rct.metabolite.id]))
+			for (reaction, metabolite) in chokepoints:
+				result.append((self.reactions[reaction.id], self.metabolites[metabolite.id]))
 		return result
 
 	def fva(self, model):

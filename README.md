@@ -12,13 +12,13 @@ The documentation can be found at [readthedocs](https://findcritical.readthedocs
 
 # Source
 ## Table of Contents
-- [Install source requirements](#Install%20source%20requirements)
- 	- [CLI/GUI](#CLI%2FGUI)
+- [Install source requirements](#install-source-requirements)
+ 	- [CLI/GUI](#cligui)
  	- [WEB](#WEB)
 - [Run](#Run)
  	- [CLI](#CLI)
  	- [GUI](#GUI)
- 	- [WEB](#WEB)
+ 	- [WEB](#web-1)
 - [Maintainers](#maintainers)
 - [Contributing](#contributing)
 - [License](#license)
