@@ -52,6 +52,7 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			If the methos find_chokepoints() hasn't been called the value is None.
 
 		__fva (): List of tuples (cobra.core.reaction, maximun, minimum) containing the result of the Flux Variability Analysis.
+
 		__essential_genes (): List of cobra.core.gene containing the essential genes of the model.
 		__essential_genes_reactions (): Dict containing the reactions associated to the essential genes.
 			Key: cobra.core.reaction.
@@ -169,10 +170,16 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 
 
 	def get_fva(self):
+		""" Returns the result of running Flux Variability Analysis on the model
+
+		:return: List of tuples (cobra.core.reaction, maximum flux, minimum flux) with the reactions and its flux.
+		:rtype: list([ tuple( (cobra.core.reaction, float, float) ) ])
+		"""
 		if self.__fva is not None:
 			return self.__fva
 		else:
 			raise Exception("Flux Variability hasn't been run. Please run 'fva()'.")
+
 
 	def genes(self):
 		return self.__cobra_model.genes
@@ -604,6 +611,7 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			if num_mtbs == len(self.__cobra_model.metabolites):
 				break
 
+
 	def remove_dem(self, delete_exchange=False, keep_all_incomplete_reactions=True):
 		""" While there network changes, eliminates dead ends metabolites
 			and reactions that only produce or consume
@@ -633,15 +641,32 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		else:
 			self.__remove_dem(False, keep_all_incomplete_reactions)
 
-
-
-	def fva(self, loopless=False, verbose=False, update_flux=False, threshold=None, pfba_factor=None):
-		""" If possible, runs a Flux Variability Analysis on the model and saves the result on the '__fva' class atribute.
+		""" 
 
 		Args:
 			loopless (): Runs a lopeless analysis
 			verbose (): Prints the results obtained in the analysis
 			update_flux (): Updates the bounds of the reaction with the values obtained with the F.V.A.
+		"""
+	def fva(self, loopless=False, verbose=False, update_flux=False, threshold=None, pfba_factor=None):
+		""" If possible, runs a Flux Variability Analysis on the model and saves the result on the '__fva' class atribute.
+			Returns a list of errors. If there wasn't any error while running FVA it return an empty list: []
+
+			For more info about the params see: https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/flux_analysis/variability/index.html?highlight=flux_varia#cobra.flux_analysis.variability.flux_variability_analysis
+
+		:param loopless: Runs a lopeless analysis
+		:type loopless: bool
+		:param verbose: Print the result of FVA while running the analysis.
+		:type verbose: bool
+		:param update_flux: Updates the bounds of the reaction with the values obtained with the F.V.A.
+		:type update_flux: bool
+		:param threshold: Must be <= 1.0. If is None: deafult = 1.0. factor of the maximum objective value.
+		:type threshold: float
+		:param pfba_factor: Add an additional constraint to the model that requires the total sum of absolute fluxes
+				must not be larger than this value times the smallest possible sum of absolute fluxes
+		:type pfba_factor: float
+		:return: list of errors if there was any. Else return an empty list: []
+		:rtype: list([ str ])
 		"""
 		errors = []
 		if verbose:

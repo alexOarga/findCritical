@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>CORE &mdash; findCritical version 74c13c5</title>
+  <title>CORE &mdash; findCritical version c18f988</title>
   
 
   
@@ -101,8 +101,17 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#Flux-Balance-Analysis">Flux Balance Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Flux-Variability-Analysis">Flux Variability Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Updating-reaction’s-flux-with-FVA">Updating reaction’s flux with FVA</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#Spreadsheet">Spreadsheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#Facade">Facade</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#CLI">CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#GUI">GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#WEB">WEB</a></li>
 </ul>
 
             
@@ -389,8 +398,7 @@ div.rendered_html tbody tr:hover {
     text-align: unset;
 }
 </style>
-# Developer documentation
-=======================<div class="section" id="CORE">
+# Developer documentation<div class="section" id="CORE">
 <h1>CORE<a class="headerlink" href="#CORE" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Import-core-modules">
 <h2>Import core modules<a class="headerlink" href="#Import-core-modules" title="Permalink to this headline">¶</a></h2>
@@ -475,17 +483,17 @@ COMPARTMENTS:  c
 MODEL:  MODEL1507180070  - NUMBER OF METABOLITES:  655
 METABOLITE  |  COMPARTMENT      |  REACTION ID
 -------------------------------------------------------
-10fthf_c    |  c                |  biomass_SA_7b
-            |                   |  FTHFL
+10fthf_c    |  c                |  FTHFL
+            |                   |  biomass_SA_7b
             |                   |  GARFT
             |                   |  MTHFC
-            |                   |  AICART
             |                   |  biomass_SA_8a
+            |                   |  AICART
             |                   |  biomass_SA_7a
-12dgr_EC_c  |  c                |  biomass_SA_3b
-            |                   |  biomass_SA_2a
+12dgr_EC_c  |  c                |  biomass_SA_2a
             |                   |  biomass_SA_lipids_only
-            |                   |  biomass_SA_2b
+            |                   |  biomass_SA_3b
+            |                   |  biomass_SA_3a
             |
 </pre></div></div>
 </div>
@@ -554,9 +562,9 @@ SA0008      |  SA0008      |  HISDr       |  SA0008
 SA0009      |  SA0009      |  SERTRS      |  SA0009
 SA0011      |  SA0011      |  HSERTA      |  SA0011
 SA0016      |  SA0016      |  ADSS        |  SA0016
-SA0036      |  SA0036      |  GPDDA4      |  SA0036 or SA0820 or SA1542 or SA0969 or SA0220
-            |              |  GPDDA2      |  SA0036 or SA0820 or SA1542 or SA0969 or SA0220
+SA0036      |  SA0036      |  GPDDA2      |  SA0036 or SA0820 or SA1542 or SA0969 or SA0220
             |              |  GPDDA3      |  SA0036 or SA0820 or SA1542 or SA0969 or SA0220
+            |              |  GPDDA5      |  SA0036 or SA0820 or SA1542 or SA0969 or SA0220
             |
 </pre></div></div>
 </div>
@@ -594,23 +602,22 @@ SA0036      |  SA0036      |  GPDDA4      |  SA0036 or SA0820 or SA1542 or SA096
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{&#39;c&#39;: [&lt;Metabolite clpn_EC_c at 0x7f51233a8160&gt;,
-  &lt;Metabolite octdp_c at 0x7f5123374278&gt;,
-  &lt;Metabolite ddcaACP_c at 0x7f51233b02b0&gt;,
-  &lt;Metabolite octp_c at 0x7f51233742e8&gt;,
-  &lt;Metabolite acmama_c at 0x7f5123409fd0&gt;,
-  &lt;Metabolite decdp_c at 0x7f51233b0438&gt;,
-  &lt;Metabolite dgdcg_SA_c at 0x7f51233b0470&gt;,
-  &lt;Metabolite uppg1_c at 0x7f512339e470&gt;,
-  &lt;Metabolite pala_SA_c at 0x7f51233744e0&gt;,
-  &lt;Metabolite 2a3pp_c at 0x7f51233f05c0&gt;,
-  &lt;Metabolite pe_EC_c at 0x7f51233747b8&gt;,
-  &lt;Metabolite cu2_c at 0x7f51233a88d0&gt;,
-  &lt;Metabolite pg_EC_c at 0x7f5123374940&gt;,
-  &lt;Metabolite pgly_SA_c at 0x7f5123374978&gt;,
-  &lt;Metabolite g3pc_c at 0x7f51233c0b00&gt;,
-  &lt;Metabolite ssaltpp_c at 0x7f5123388b00&gt;,
-  &lt;Metabolite
+{&#39;c&#39;: [&lt;Metabolite trnaarg_c at 0x7f2f25654080&gt;,
+  &lt;Metabolite trnaasn_c at 0x7f2f256540f0&gt;,
+  &lt;Metabolite mhpglu_c at 0x7f2f256260f0&gt;,
+  &lt;Metabolite trnaasp_c at 0x7f2f25654128&gt;,
+  &lt;Metabolite trnacys_c at 0x7f2f25654160&gt;,
+  &lt;Metabolite mi1p_DASH_D_c at 0x7f2f25626198&gt;,
+  &lt;Metabolite pg_EC_c at 0x7f2f25636198&gt;,
+  &lt;Metabolite trnagly_c at 0x7f2f256541d0&gt;,
+  &lt;Metabolite trnaile_c at 0x7f2f25654208&gt;,
+  &lt;Metabolite trnalys_c at 0x7f2f25654240&gt;,
+  &lt;Metabolite trnamet_c at 0x7f2f25654278&gt;,
+  &lt;Metabolite trnaser_c at 0x7f2f256542b0&gt;,
+  &lt;Metabolite ssaltpp_c at 0x7f2f2564a2e8&gt;,
+  &lt;Metabolite trnathr_c at 0x7f2f256542e8&gt;,
+  &lt;Metabolite sucr_c at 0x7f2f2564a630&gt;,
+  &lt;Metabolite drib_c at 0x7f2f256706a
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -637,18 +644,18 @@ SA0036      |  SA0036      |  GPDDA4      |  SA0036 or SA0820 or SA1542 or SA096
 MODEL:  MODEL1507180070  - NUMBER OF DEM:  2  - COMPARTMENT:  ALL
 METABOLITE  |  COMPARTMENT      |  REACTION ID
 -------------------------------------------------------
-clpn_EC_c   |  c                |  biomass_SA_3b
-            |                   |  biomass_SA_2a
+trnaarg_c   |  c                |  ARGTRS
+trnaasn_c   |  c                |  ASNTRS
+mhpglu_c    |  c                |  MHPGLUT
+trnaasp_c   |  c                |  ASPTRS
+trnacys_c   |  c                |  CYSTRS
+mi1p_DASH_D_c  |  c                |  MI1PP
+pg_EC_c     |  c                |  biomass_SA_2a
             |                   |  biomass_SA_lipids_only
-            |                   |  biomass_SA_2b
+            |                   |  biomass_SA_3b
             |                   |  biomass_SA_3a
-octdp_c     |  c                |  DHNAOT
-ddcaACP_c   |  c                |  KAS16
-octp_c      |  c                |  OCTD
-acmama_c    |  c                |  AMAA
-decdp_c     |  c                |  UDPDPS
-dgdcg_SA_c  |  c                |  biomass_SA_3b
-            |
+            |                   |  biomass_SA_2b
+trnagly_c   |  c
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -675,18 +682,19 @@ dgdcg_SA_c  |  c                |  biomass_SA_3b
 MODEL:  MODEL1507180070  - NUMBER OF DEM:  2  - COMPARTMENT:  e
 METABOLITE  |  COMPARTMENT      |  REACTION ID
 -------------------------------------------------------
-salcn_e     |  e                |  SALCpts
-            |                   |  EX_salcn_e
-gua_e       |  e                |  EX_gua_e
-            |                   |  GUAt2
-ser_DASH_L_e  |  e                |  EX_ser_DASH_L_e
-            |                   |  SERabc
-cobalt2_e   |  e                |  COabc
-            |                   |  EX_cobalt2_e
-asp_DASH_L_e  |  e                |  EX_asp_DASH_L_e
-            |                   |  ASPabc
-ura_e       |  e                |  EX_ura_e
-            |                   |  U
+mg2_e       |  e                |  MG2abc
+            |                   |  EX_mg2_e
+uri_e       |  e                |  URIt4
+            |                   |  EX_uri_e
+mn2_e       |  e                |  EX_mn2_e
+            |                   |  MNt2
+            |                   |  MNabc
+spmd_e      |  e                |  EX_spmd_e
+            |                   |  SPMDabc
+pheme_e     |  e                |  HEMEti
+            |                   |  EX_pheme_e
+mnl_e       |  e                |  MNLpts
+            |
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -788,19 +796,19 @@ Reactions:  739
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[(&lt;Reaction PROD2 at 0x7f51229b3908&gt;, &lt;Metabolite 1pyr5c_c at 0x7f5123365be0&gt;),
- (&lt;Reaction DHDPRy at 0x7f5123216e10&gt;,
-  &lt;Metabolite 23dhdp_c at 0x7f5123365cf8&gt;),
- (&lt;Reaction DHDPS at 0x7f5123216c88&gt;, &lt;Metabolite 23dhdp_c at 0x7f5123365cf8&gt;),
- (&lt;Reaction DHAD1 at 0x7f5123210fd0&gt;, &lt;Metabolite 23dhmb_c at 0x7f5123365d30&gt;),
- (&lt;Reaction KARA1i at 0x7f5122b5b390&gt;,
-  &lt;Metabolite 23dhmb_c at 0x7f5123365d30&gt;),
- (&lt;Reaction DHAD2 at 0x7f5123208668&gt;, &lt;Metabolite 23dhmp_c at 0x7f5123365a90&gt;),
- (&lt;Reaction KARA2i at 0x7f5122b5b5c0&gt;,
-  &lt;Metabolite 23dhmp_c at 0x7f5123365a90&gt;),
- (&lt;Reaction DHPPDA at 0x7f51231b84e0&gt;,
-  &lt;Metabolite 25dhpp_c at 0x7f5123365160&gt;),
- (&lt;Reaction GTPCII at 0x7f5122b88be0&gt;,
+[(&lt;Reaction PROD2 at 0x7f2f24c75198&gt;, &lt;Metabolite 1pyr5c_c at 0x7f2f256cb940&gt;),
+ (&lt;Reaction DHDPRy at 0x7f2f24ef5b70&gt;,
+  &lt;Metabolite 23dhdp_c at 0x7f2f256cb7b8&gt;),
+ (&lt;Reaction DHDPS at 0x7f2f24ef5b38&gt;, &lt;Metabolite 23dhdp_c at 0x7f2f256cb7b8&gt;),
+ (&lt;Reaction DHAD1 at 0x7f2f2550cba8&gt;, &lt;Metabolite 23dhmb_c at 0x7f2f256cbf98&gt;),
+ (&lt;Reaction KARA1i at 0x7f2f24e0ebe0&gt;,
+  &lt;Metabolite 23dhmb_c at 0x7f2f256cbf98&gt;),
+ (&lt;Reaction DHAD2 at 0x7f2f254fd2e8&gt;, &lt;Metabolite 23dhmp_c at 0x7f2f256cbb70&gt;),
+ (&lt;Reaction KARA2i at 0x7f2f24e0ee10&gt;,
+  &lt;Metabolite 23dhmp_c at 0x7f2f256cbb70&gt;),
+ (&lt;Reaction DHPPDA at 0x7f2f24eafdd8&gt;,
+  &lt;Metabolite 25dhpp_c at 0x7f2f256cbfd0&gt;),
+ (&lt;Reaction GTPCII at 0x7f2f24e4b160&gt;,
   &lt;Metabo
 </pre></div></div>
 </div>
@@ -886,7 +894,7 @@ METABOLITE ID |  METABOLITE NAME                           | REACTION ID | REACT
 &#39;1.0*biomass_SA_8a - 1.0*biomass_SA_8a_reverse_4ce77&#39;
 </pre></div></div>
 </div>
-<p>This objective function can be changed by another reaction of the model with <code class="docutils literal notranslate"><span class="pre">set_objective()</span></code>. This method receives the reaction’s id of the reaction that will be set as the new objective value.</p>
+<p>This objective function can be changed by another reaction of the model with <code class="docutils literal notranslate"><span class="pre">set_objective()</span></code>. This method receives the id of the reaction that will be set as the new objective value.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
@@ -907,6 +915,215 @@ METABOLITE ID |  METABOLITE NAME                           | REACTION ID | REACT
 </pre></div></div>
 </div>
 </div>
+<div class="section" id="Flux-Variability-Analysis">
+<h2>Flux Variability Analysis<a class="headerlink" href="#Flux-Variability-Analysis" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-489">Flux Vatiability Analysis (FVA)</a> is a mathematical procedure used to calculate the ‘’minimum and maximum flux for reactions in the network while maintaining some state of the network, e.g., supporting 90% of maximal possible biomass production rate’’.</p>
+<div class="line-block">
+<div class="line">The method <code class="docutils literal notranslate"><span class="pre">fva()</span></code> runs Flux Variability Analysis on the model. This method runs <a class="reference external" href="https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/flux_analysis/variability/index.html?highlight=flux_varia#cobra.flux_analysis.variability.flux_variability_analysis">cobra.flux_analysis.variability</a> and as so it allows the same parameters (see the previous link):</div>
+<div class="line">- <strong>loopless</strong>: (default False) return only loopless solutions.</div>
+<div class="line">- <strong>threshold</strong>: (float default None. In cobrapy ‘fraction_of_optimum’): Requires that the objective value is at least the fraction times maximum objective value.</div>
+<div class="line">- <strong>pfba_factor</strong>: (float default None) the total sum of absolute fluxes must not be larger than this value times the smallest possible sum of absolute fluxes.</div>
+</div>
+<div class="line-block">
+<div class="line">An extra parameter:</div>
+<div class="line">- <strong>verbose</strong>: (default False) if True prints on the command line the result of FVA while running the analysis.</div>
+</div>
+<p>Method <code class="docutils literal notranslate"><span class="pre">fva()</span></code> returns an error list if there was an error while running FVA or an empty list <code class="docutils literal notranslate"><span class="pre">[]</span></code> otherwise.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span><span class="o">.</span><span class="n">fva</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span><span class="o">.</span><span class="n">fva</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+FLUX VARIABILITY ANALYSIS:  MODEL1507180070
+REACTION:  3-Methyl-2-oxobutanoate:lipoamide oxidoreductase(decarboxylating and acceptor-2-methylpropanoylating)
+    fva ranges:   [ 0.0        ,  0.0        ]
+REACTION:  3-Methyl-2-oxopentanoate:lipoamide oxidoreductase(decarboxylating and acceptor-2-methylpropanoylating)
+    fva ranges:   [ 0.0        ,  0.0        ]
+REACTION:  4-Methyl-2-oxopentanoate:lipoamide oxidoreductase(decarboxylating and acceptor-2-methylpropanoylating)
+    fva ranges:   [ 0.0        ,  0.0        ]
+REACTION:  6-phospho-beta-galactosidase
+    fva ranges:   [ 0.0        ,  0.0        ]
+REACTION:  6-phospho-beta-glucosidase
+    fva ranges:   [ 0.0        ,  0.0        ]
+RE
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+* * *</div>
+</div>
+<p>The result obtained with FVA can be accesed with <code class="docutils literal notranslate"><span class="pre">get_fva()</span></code>. This method returns a list of tuples: (<a class="reference external" href="https://cobrapy.readthedocs.io/en/latest/getting_started.html#Reactions">cobra.core.reaction</a>, [float] maximum flux, [float] minimum flux)</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span><span class="o">.</span><span class="n">get_fva</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[(&lt;Reaction 3M2OBLOXRD at 0x7f2f254ae438&gt;, 0.0, 0.0),
+ (&lt;Reaction 3M2OPLOXRD at 0x7f2f254ae6a0&gt;, 0.0, 0.0),
+ (&lt;Reaction 4M2OPLOXRD at 0x7f2f254a7a20&gt;, 0.0, 0.0),
+ (&lt;Reaction 6PGALSZ at 0x7f2f254a1240&gt;, 0.0, 0.0),
+ (&lt;Reaction 6PHBG at 0x7f2f254a1198&gt;, 0.0, 0.0),
+ (&lt;Reaction ABTAr at 0x7f2f2551aa90&gt;, 0.0, 0.0),
+ (&lt;Reaction ACACT1r at 0x7f2f25513630&gt;,
+  0.0003251131856814027,
+  -2065.624999999994),
+ (&lt;Reaction ACACT2r at 0x7f2f2550c780&gt;, 0.0, -2065.624999999994),
+ (&lt;Reaction ACACT3r at 0x7f2f255044a8&gt;, 0.0, -2065.624999999994),
+ (&lt;Reaction ACACT4r at 0x7f2f25504358&gt;, 0.0, -2065.624999999994),
+ (&lt;Reaction ACACT5r at 0x7f2f254fd668&gt;, 0.0, -2065.624999999994),
+ (&lt;Reaction ACACT6r at 0x7f2f254fd048
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+* * *</div>
+</div>
+<div class="section" id="Updating-reaction’s-flux-with-FVA">
+<h3>Updating reaction’s flux with FVA<a class="headerlink" href="#Updating-reaction’s-flux-with-FVA" title="Permalink to this headline">¶</a></h3>
+<p><strong>findCritical</strong> adds an extra parameter to this method which is <code class="docutils literal notranslate"><span class="pre">update_flux</span></code>. If <code class="docutils literal notranslate"><span class="pre">True</span></code> the method <code class="docutils literal notranslate"><span class="pre">fva()</span></code> updates the model reaction’s flux with the maximum and minimum flux values obtained with FVA (see the example below).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Print initial reactions of the model with initial flux values.</span>
+<span class="n">model</span><span class="o">.</span><span class="n">print_reactions</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+MODEL:  MODEL1507180070  - NUMBER OF REACTIONS:  743
+REACTION ID | UPPER BOUND | LOWER BOUND | REACTION
+-------------------------------------------------------
+3M2OBLOXRD  |   999999.0  |  -999999.0  |  3mob_c + h_c + lpam_c &lt;=&gt; 2mpdhl_c + co2_c
+3M2OPLOXRD  |   999999.0  |  -999999.0  |  3mop_c + h_c + lpam_c &lt;=&gt; 2mbdhl_c + co2_c
+4M2OPLOXRD  |   999999.0  |  -999999.0  |  4mop_c + h_c + lpam_c &lt;=&gt; 3mbdhl_c + co2_c
+6PGALSZ     |   999999.0  |  0.0        |  h2o_c + lac6p_c --&gt; dgal6p_c + glc_DASH_D_c
+6PHBG       |   999999.0  |  0.0        |  h2o_c + salc6p_c --&gt; 2hymeph_c + g6p_c
+ABTAr       |   999999.0  |  0.0        |  4abut_c + akg_c --&gt; glu_DASH_L_c + sucsal_c
+ACACT1r     |   999999.0
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+* * *</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Update reactions flux values with FVA</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fva</span><span class="p">(</span><span class="n">update_flux</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Print reactions of the model with refined reactions flux values.</span>
+<span class="n">model</span><span class="o">.</span><span class="n">print_reactions</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+MODEL:  MODEL1507180070  - NUMBER OF REACTIONS:  743
+REACTION ID | UPPER BOUND | LOWER BOUND | REACTION
+-------------------------------------------------------
+3M2OBLOXRD  |   0.0       |  0.0        |  3mob_c + h_c + lpam_c --&gt; 2mpdhl_c + co2_c
+3M2OPLOXRD  |   0.0       |  0.0        |  3mop_c + h_c + lpam_c --&gt; 2mbdhl_c + co2_c
+4M2OPLOXRD  |   0.0       |  0.0        |  4mop_c + h_c + lpam_c --&gt; 3mbdhl_c + co2_c
+6PGALSZ     |   0.0       |  0.0        |  h2o_c + lac6p_c --&gt; dgal6p_c + glc_DASH_D_c
+6PHBG       |   0.0       |  0.0        |  h2o_c + salc6p_c --&gt; 2hymeph_c + g6p_c
+ABTAr       |   0.0       |  0.0        |  4abut_c + akg_c --&gt; glu_DASH_L_c + sucsal_c
+ACACT1r     |   -1.86605
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+* * *</div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="Spreadsheet">
+<h1>Spreadsheet<a class="headerlink" href="#Spreadsheet" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="Facade">
+<h1>Facade<a class="headerlink" href="#Facade" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="CLI">
+<h1>CLI<a class="headerlink" href="#CLI" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="GUI">
+<h1>GUI<a class="headerlink" href="#GUI" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="WEB">
+<h1>WEB<a class="headerlink" href="#WEB" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
