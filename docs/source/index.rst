@@ -11,7 +11,7 @@ Welcome to findCritical's documentation!
     :glob:
 
     developer-documentation
-	deploy-documentation
-	project-documentation
+    deploy-documentation
+    project-documentation
 
 .. only:: html
