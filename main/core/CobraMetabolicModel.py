@@ -92,6 +92,9 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			raise Exception("Couldn't find state: '" + key + "'. State doesn't exist")
 		return self.__states[key]
 
+	def model(self):
+		return self.__cobra_model
+
 	def id(self):
 		return self.__cobra_model.id
 
@@ -202,6 +205,15 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		else:
 			raise Exception("Essential reactions hasn't been calculated. Please run 'find_essential_reactions_1()'.")
 
+	def reversible_reactions(self):
+		""" Returns a list of reversible reactions of the model
+
+		:return: List of cobra.core.reaction with reversible direction.
+		:rtype: list([ cobra.core.reaction ])
+		"""
+		return list(filter(lambda x: self.__reaction_direction(x) == self._Direction.REVERSIBLE, self.__cobra_model.reactions))
+		
+
 	def __id(self, e):
 		return e.id
 
@@ -277,7 +289,6 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			for code in ['SBML_ERROR', 'SBML_SCHEMA_ERROR', 'SBML_FATAL', 'COBRA_FATAL', 'COBRA_ERROR']:
 				error_list = errors[code]
 				if error_list != []:
-					print(code)
 					raise Exception("Error reading model: " + error_list[0])
 
 		sys.stderr = original_stderr  # turn STDERR back on
@@ -302,7 +313,8 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			raise RuntimeError("Destination file must be either .xml .json .yml")
 
 
-
+	def reaction_direction(self, reaction):
+		return self.__reaction_direction(reaction)
 
 	def __reaction_direction(self, reaction):
 		""" Checks the direction of a reaction given his upper and lower bounds.
@@ -324,6 +336,8 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		if lower == 0 and upper == 0:
 			if reaction in self.__initial_backward_reactions:
 				return self._Direction.BACKWARD
+			else:
+				return self._Direction.FORWARD
 		elif lower >= 0:
 			return self._Direction.FORWARD
 		elif upper > 0:
@@ -676,7 +690,7 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			fva_result = []
 			# Run FVA analysis
 			if threshold is None and pfba_factor is None:
-				fva_reactions = flux_variability_analysis(self.__cobra_model, loopless=loopless, processes=1)
+				fva_reactions = flux_variability_analysis(self.__cobra_model, loopless=loopless,  processes=1)
 			else:
 				fva_reactions = flux_variability_analysis(self.__cobra_model, loopless=loopless, processes=1, fraction_of_optimum=threshold,  pfba_factor=pfba_factor)
 			for reaction_id in fva_reactions.index:
@@ -759,7 +773,6 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			aux = cobra.flux_analysis.variability.find_essential_genes(self.__cobra_model, processes=1)
 			self.__essential_genes = aux
 		except cobra.exceptions.Infeasible as error:
-			# TODO remove raise
 			self.__essential_genes = []
 			errors.append("Model is infeasable")
 		except Exception as error:

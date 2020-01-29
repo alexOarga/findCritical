@@ -25,6 +25,9 @@ class MetabolicModel(AbstractMetabolicModel):
 	def get_state(self, key):
 		return self.__model.get_state(key)
 
+	def model(self):
+		return self.__model.model()
+
 	def id(self):
 		return self.__model.id()
 

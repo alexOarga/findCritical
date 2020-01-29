@@ -140,6 +140,12 @@ class State:
 	def set_essential_reactions(self, essential_reactions):
 		self.__essential_reactions = essential_reactions
 
+	def reversible_reactions(self):
+		return self.__reversible_reactions
+
+	def set_reversible_reactions(self, reversible_reactions):
+		self.__reversible_reactions = reversible_reactions
+
 
 class CobraMetabolicStateBuilder:
 
@@ -152,6 +158,7 @@ class CobraMetabolicStateBuilder:
 		state.set_id(self.id(model))
 		state.set_objective(self.objective(model))
 		state.set_objective_value(self.objective_value(model))
+		state.set_reversible_reactions(self.reversible_reactions(model))
 		(metabolites, reactions, genes) = self.metabolic_network(model)
 		state.set_reactions(reactions)
 		state.set_metabolites(metabolites)
@@ -298,3 +305,6 @@ class CobraMetabolicStateBuilder:
 			return result
 		except Exception:
 			return {}
+
+	def reversible_reactions(self, model):
+		return [r.id for r in model.reversible_reactions()]

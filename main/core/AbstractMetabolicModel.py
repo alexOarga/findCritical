@@ -34,6 +34,10 @@ class AbstractMetabolicModel(ABC):
 		pass
 
 	@abstractmethod
+	def model(self):
+		pass
+
+	@abstractmethod
 	def id(self):
 		pass
 

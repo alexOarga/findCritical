@@ -1,5 +1,6 @@
-
 import threading
+import inspect
+import ctypes
 import time
 
 from FacadeUtils import FacadeUtils
@@ -91,29 +92,32 @@ class FacadeThread(threading.Thread):
 		self.model_path = model_path
 		super(FacadeThread, self).__init__()
 
-	def set_task(self, task, notify_function=None, args1=None, args2=None, output_path=None):
+	def set_task(self, task, notify_function=None, args1=None, args2=None, output_path=None, objective=None):
 		self.task = task
 		self.notify_function = notify_function
 		self.args1=args1
 		self.args2=args2
 		self.output_path = output_path
+		self.objective = objective
 
 
 	def run(self):
 		try:
 			if self.task == TASK_READ_MODEL:
 				f = FacadeUtils()
-				(result, error, model, model_id, reactions, metabolites, genes) = f.read_model(self.model_path)
-				self.notify_function(result, error,  model_id, reactions, metabolites, genes, self.args1, self.args2)
+				(result, error, model, model_id, reactions, metabolites, genes, reactions_list) = f.read_model(self.model_path)
+				self.notify_function(result, error,  model_id, reactions, metabolites, genes, reactions_list, self.args1, self.args2)
+
 			elif self.task == TASK_FIND_AND_REMOVE_DEM:
 				f = FacadeUtils()
 				self.model = f.find_and_remove_dem(self.model_path)
 				if self.output_path is not None and self.model is not None:
 					f.save_model(self.output_path, self.model)
 				self.notify_function("text", self.args1, self.args2, ended=True, result=True, error=None)
+
 			elif self.task == TASK_SAVE_FVA:
 				f = FacadeUtils()
-				(self.model, error) = f.run_fva(self.model_path)
+				(self.model, error) = f.run_fva(self.model_path, objective=self.objective)
 				result_ok = error == ""
 				if result_ok:
 					if self.output_path is not None and self.model is not None:
@@ -121,29 +125,33 @@ class FacadeThread(threading.Thread):
 					self.notify_function("text", self.args1, self.args2, ended=True, result=True, error=None)
 				else:
 					self.notify_function("text", self.args1, self.args2, ended=True, result=False, error=error)
+
 			elif self.task == TASK_SAVE_FVA_DEM:
 				f = FacadeUtils()
-				(self.model, error) = f.run_fva_remove_dem(self.model_path)
+				(self.model, error) = f.run_fva_remove_dem(self.model_path, objective=self.objective)
 				result_ok = error == ""
 				if result_ok:
 					if self.output_path is not None and self.model is not None:
 						f.save_model(self.output_path, self.model)
-						self.notify_function("text", self.args1, self.args2, ended=True, result=True, error=None)
+					self.notify_function("text", self.args1, self.args2, ended=True, result=True, error=None)
 				else:
 					self.notify_function("text", self.args1, self.args2, ended=True, result=False, error=error)
+
 			elif self.task == TASK_SPREADSHEET:
 				f = FacadeUtils()
-				s = f.run_summary_model(self.model_path, self.notify_function, self.args1, None)
+				s = f.run_summary_model(self.model_path, self.notify_function, self.args1, None, objective=self.objective)
 				self.spreadsheet = s
 				if self.output_path is not None:
 					(result_ok, error) = f.save_spreadsheet(self.output_path, s)
 				self.notify_function("text", self.args1, self.args2, ended=True, result=True, error=None)
+
 			elif self.task == TASK_SAVE_SPREADSHEET:
 				f = FacadeUtils()
 				s = self.spreadsheet
 				if self.output_path is not None and s is not None:
 					(result_ok, error) = f.save_spreadsheet(self.output_path, s)
 					self.notify_function("text", self.args1, self.args2, ended=True, result=result_ok, error=error)
+
 			elif self.task == TASK_SAVE_MODEL:
 				f = FacadeUtils()
 				(result, text) = f.save_model(self.output_path, self.model)
@@ -151,7 +159,8 @@ class FacadeThread(threading.Thread):
 		except Exception as error:
 			# Thread stopped
 			# This raise is just for debugging purposes
-			#print("JUST FOR DEBUG EXCEPTION:", str(error))
-			raise error
+			#print("DEBUG: please remove in FacadeThread.py:", str(error))
+			#raise error
+			print("Error:", str(error))
 			pass
 

@@ -1,7 +1,7 @@
 import sys, os
 
 from PyQt5.QtWidgets import QGroupBox, QVBoxLayout, QMessageBox, QMainWindow, QApplication, QWidget, QPushButton, \
-	QFileDialog, QPlainTextEdit, QLabel, QHBoxLayout, QAction, QSizePolicy, QSpacerItem, QTextBrowser, QDialog,  QTextBrowser
+	QFileDialog, QPlainTextEdit, QLabel, QHBoxLayout, QAction, QSizePolicy, QSpacerItem, QTextBrowser, QDialog,  QTextBrowser, QComboBox
 from PyQt5.QtGui import QMovie
 from PyQt5.QtCore import pyqtSignal, Qt, QByteArray, pyqtSignal, QThread, QRect, QSize
 from libsbml import _libsbml
@@ -10,6 +10,7 @@ import threading
 
 sys.path.append('../core')
 sys.path.append('..//core')
+
 from Facade import Facade
 
 WIDTH = 480
@@ -36,6 +37,7 @@ EVENT_STOP = "EVENT_STOP"
 EVENT_SAVE_FILE_FINISH = "EVENT_SAVE_FILE_FINISH"
 EVENT_WORK_FINISH = "EVENT_WORK_FINISH"
 EVENT_WORK_TASK = "EVENT_WORK_TASK"
+EVENT_SET_OBJECTIVE = "EVENT_SET_OBJECTIVE"
 
 # Some Windows errors make the app to restart. Avoided temporarely with the 'RUNNING' flag.
 RUNNING = False
@@ -67,6 +69,8 @@ class Model:
 	signal = None
 	facade = None
 
+	objective = None
+
 	def read_file(self):
 		(fname, AllFiles) = QFileDialog.getOpenFileName(self.app, 'Open model file')
 		self.model_path = fname
@@ -95,15 +99,18 @@ class Model:
 	def set_signal(self, signal):
 		self.signal = signal
 
-	def notify_read_complete(self, result_ok, error_msg, model_id, reactions, metabolites, genes, args1=None, args2=None, result=False, error=None):
+
+	def notify_read_complete(self, result_ok, error_msg, model_id, reactions, metabolites, genes, reactions_list, args1=None, args2=None, result=False, error=None):
 		self.model_id = model_id
 		self.reactions = reactions
 		self.metabolites = metabolites
 		self.genes = genes
+		self.reactions_list = reactions_list
 		if result_ok:
 			self.signal.emit({"event": EVENT_READ_COMPLETE, "result": True, "errors": []})
 		else:
-			self.signal.emit({"event": EVENT_READ_COMPLETE, "result": False, "errors": [error]})
+			self.signal.emit({"event": EVENT_READ_COMPLETE, "result": False, "errors": [error_msg]})
+
 
 	def notify_log(self, msg, arg1=None, arg2=None, ended=False, result=False, error=None):
 		if not ended:
@@ -122,10 +129,15 @@ class Model:
 		self.signal.emit({"event": EVENT_WORK_FINISH, "success": result, "result": error})
 
 	def generic_log_issue(self):
-		self.signal.emit({"event": EVENT_LOG, "log": "Please report any issue to: {github.url.example}"})
+		self.signal.emit({"event": EVENT_LOG, "log": "Please report any issue to: https://github.com/alexOarga/findCritical/issues"})
 
 	def run(self, task):
 		try:
+
+			objective = self.objective				
+			if self.objective is not None:
+				objective = self.reactions_list[self.objective - 1]
+
 			if task == TASK_READ_MODEL:
 				(result_ok, erorr) = self.read_model(self.model_path, False, self.notify_read_complete)
 			elif task == TASK_SAVE_DEM:
@@ -135,14 +147,14 @@ class Model:
 			elif task == TASK_SAVE_FVA:
 				self.generic_log_issue()
 				self.log("Updating model with Flux Variability Analysis... Please wait.")
-				self.facade.run_fva(True, None, self.notify_work_model_done, self.model_path)
+				self.facade.run_fva(True, None, self.notify_work_model_done, self.model_path, objective=objective)
 			elif task == TASK_SAVE_FVA_DEM:
 				self.generic_log_issue()
 				self.log("Updating model with Flux Variability Analysis, finding and removing dead-end metabolites... Please wait.")
-				self.facade.run_fva_remove_dem(True, None, self.notify_work_model_done, self.model_path)
+				self.facade.run_fva_remove_dem(True, None, self.notify_work_model_done, self.model_path, objective=objective)
 			elif task == TASK_SPREADSHEET:
 				self.generic_log_issue()
-				self.facade.generate_spreadsheet(True, self.model_path, self.notify_log, args1=None, args2=None, output_path=None)
+				self.facade.generate_spreadsheet(True, self.model_path, self.notify_log, args1=None, args2=None, output_path=None, objective=objective)
 			elif task == TASK_SAVE_SPREADSHEET:
 				self.save_spreadsheet_to_file(self.notify_saving_spreadsheet)
 			elif task == TASK_SAVE_MODEL:
@@ -151,8 +163,8 @@ class Model:
 		except Exception as error:
 			# THread stopped
 			# TODO: REMOVE THIS
-			#raise error
-			pass
+			print("DEBUG: REMOVE THIS RAISE IN run_GUI.py")
+			raise error
 
 	def find_and_remove_dem(self):
 		log_msg = "Searching Dead End Metabolites...\n"
@@ -413,6 +425,47 @@ class View:
 		self.log.show()
 		self.win.show()
 
+	def show_working_window_objective(self, task, reactions_list):
+		self.signal.emit({"event": EVENT_SET_OBJECTIVE, "result": None})
+
+		self.win = QWidget(self.window)
+		self.win.setGeometry(0, 20, WIDTH, HEIGHT-20)
+
+		vbox = QVBoxLayout()
+		text = QLabel("<strong>Task: </strong> Generating spreadsheet with results")
+		text.setWordWrap(True)
+		vbox.addWidget(text)
+		vbox.addWidget(QLabel("<br>"))
+		self.text2 = QLabel("Select objective function:")
+		self.text2.setWordWrap(True)
+		vbox.addWidget(self.text2)
+		self.cb = QComboBox()
+		self.cb.addItems(["Default"] + reactions_list)
+		self.cb.currentIndexChanged.connect(self.selectionchange)
+		vbox.addWidget(self.cb)
+		vbox.addStretch()
+		self.log = QPlainTextEdit()
+		self.log.resize(WIDTH * 0.9, HEIGHT * 0.8)
+		self.log.setPlainText("")
+		self.log.hide()
+		vbox.addWidget(self.log)
+		vbox.addWidget(self.start_working)
+		vbox.addWidget(self.cancel_working)
+		self.show_start_button()
+		self.win.setLayout(vbox)
+		self.win.show()
+
+	def hide_objective_show_log(self):
+		self.text2.hide()
+		self.cb.hide()
+		self.log.show()
+
+	def selectionchange(self, i):
+		obj = i
+		if obj == 0:
+			obj = None
+		self.signal.emit({"event": EVENT_SET_OBJECTIVE, "result": obj})
+
 	def hide_working_window(self):
 		self.log.hide()
 		self.cancel_working.hide()
@@ -523,18 +576,33 @@ class Controller:
 
 	def clicked_start_working(self):
 		self.view.show_cancel_button()
+		if self.task == TASK_SPREADSHEET:
+			self.view.hide_objective_show_log()
+		if self.task == TASK_SAVE_FVA:
+			self.view.hide_objective_show_log()
+		if self.task == TASK_SAVE_FVA_DEM:
+			self.view.hide_objective_show_log()		
 		self.model.run_task(self.signal_model, self.task)
 
 	def work_task(self, task):
-		self.view.hide_main()
-		self.view.show_working_window(task)
-
-
+		if task == TASK_SPREADSHEET:
+			self.view.hide_main()
+			self.view.show_working_window_objective(task, self.model.reactions_list)
+		elif task == TASK_SAVE_FVA:
+			self.view.hide_main()
+			self.view.show_working_window_objective(task, self.model.reactions_list)	
+		elif task == TASK_SAVE_FVA_DEM:
+			self.view.hide_main()
+			self.view.show_working_window_objective(task, self.model.reactions_list)	
+		else:
+			self.view.hide_main()
+			self.view.show_working_window(task)
 
 	def model_loaded(self, result_ok, event):
 		self.view.hide_loading_model()
 		if not result_ok:
 			self.view.retry_initial_load()
+			print(result_ok, event)
 			self.view.showErrorInitial("Error", "Couldn't read model", event["errors"][0], event)
 		else:
 			(model_id, reactions, metabolites, genes) = self.model.get_initial_model()
@@ -598,6 +666,9 @@ class Controller:
 		elif event == EVENT_STOP:
 			self.model.stop()
 
+		elif event == EVENT_SET_OBJECTIVE:
+			self.model.objective = result["result"]
+
 
 
 	def __init__(self, view, model, signal_model):
@@ -637,7 +708,7 @@ class App(QMainWindow):
 
 	def show_help(self):
 		MSG = "<h3>Issues</h3> <br>" \
-		      "Please report any issues to {github.url.example} <br> " \
+		      "Please report any issues to https://github.com/alexOarga/findCritical/issues <br> " \
 		      "<br>" \
 		      "<h3>Steps</h3> <br> " \
 		      "<strong>Step 1:</strong> Click 'Select SBML model' and upload a valid SBML model. The file format must be xml, json, yml or mat. Wait until the application reads the input file. <br>" \
@@ -699,10 +770,11 @@ class App(QMainWindow):
 
 			self.show()
 		except Exception as error:
+			print("This error shouldn't had happened. Please report it at https://github.com/alexOarga/findCritical/issues")
 			msg = QMessageBox(self)
 			msg.setIcon(QMessageBox.Warning)
 			msg.setText("Fatal error just occurred. ")
-			msg.setInformativeText("This error shouldn't had happened. Please report it at {github.example.url}")
+			msg.setInformativeText("This error shouldn't had happened. Please report it at https://github.com/alexOarga/findCritical/issues")
 			msg.setWindowTitle("Error")
 			msg.setStandardButtons(QMessageBox.Ok)
 			horizontalSpacer = QSpacerItem(500, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)

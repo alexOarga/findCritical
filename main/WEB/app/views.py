@@ -38,11 +38,11 @@ def ws_disconnect(message):
 
 
 
-def notify_function(result_ok, error,  model_id, reactions, metabolites, genes, args1=None, args2=None):
+def notify_function(result_ok, error,  model_id, reactions, metabolites, genes, reactions_list, args1=None, args2=None):
 	if result_ok:
-		Channel(args1).send({"text":json.dumps({"result":"readComplete", "message":"ok", "model":model_id, "reactions":reactions, "metabolites":metabolites, "genes":genes}) })
+		Channel(args1).send({"text":json.dumps({"result":"readComplete", "message":"ok", "model":model_id, "reactions":reactions, "metabolites":metabolites, "genes":genes, "reactions_list":reactions_list}) })
 	else:
-		Channel(args1).send({"text":json.dumps({"result":"readComplete", "message":error, "model":"null", "reactions":"null", "metabolites":"null", "genes":"null"}) })
+		Channel(args1).send({"text":json.dumps({"result":"readComplete", "message":error, "model":"null", "reactions":"null", "metabolites":"null", "genes":"null", "reactions_list":"null"}) })
 
 
 class UploadFile(View):

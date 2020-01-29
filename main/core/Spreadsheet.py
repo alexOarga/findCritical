@@ -80,7 +80,9 @@ class Spreadsheet:
 		if print_reactions:
 			sheet.write(0, 3, "REACTION ID", style=style)
 			sheet.write(0, 4, "REACTION NAME", style=style)
-			sheet.write(0, 5, "REACTION", style=style)
+			sheet.write(0, 5, "UPPER BOUND", style=style)
+			sheet.write(0, 6, "LOWER BOUND", style=style)
+			sheet.write(0, 7, "REACTION", style=style)
 		i = 1
 		for metabolite in metabolites:
 			sheet.write(i, 0, metabolite.id)
@@ -94,7 +96,9 @@ class Spreadsheet:
 				for reaction in reactions:
 					sheet.write(i, 3, reaction.id)
 					sheet.write(i, 4, reaction.name)
-					sheet.write(i, 5, reaction.reaction)
+					sheet.write(i, 5, reaction.upper_bound)
+					sheet.write(i, 6, reaction.lower_bound)
+					sheet.write(i, 7, reaction.reaction)
 					i = i + 1
 			if not print_reactions or len(reactions) == 0:
 				i = i + 1
@@ -221,18 +225,7 @@ class Spreadsheet:
 		return reaction.id
 
 	def spreadsheet_write_chokepoints(self, state, sheet_name, ordered=False):
-		"""  Writes in a sheet of the xlwt Workbook '__spreadsheet' th chokepoint reactions of the model with the
-			following format:
-
-			REACTION ID | REACTION NAME | REACTION | METABOLITE ID | METABOLITE NAME
-			------------+---------------+----------+---------------+--------------------
-			react 1     | reaction 1    | mt1->mt2 | mt1           | metabolite 1
-			------------+---------------+----------+---------------+--------------------
-			react 2     | reaction 2    | mt3->mt4 | mt3           | metabolite 3
-
-		Args:
-			sheet_name (): Name of the new sheet. Two diffetent sheets can't have the same name.
-			ordered (): Print the reactions in alphabetical order by id
+		""" 
 		"""
 		if self.__spreadsheet is None:
 			self.spreadsheet_init()
@@ -246,18 +239,42 @@ class Spreadsheet:
 			style.font = font
 			sheet = self.__spreadsheet.add_sheet(sheet_name)
 			sheet.write(0, 0, "REACTION ID", style=style)
-			sheet.write(0, 1, "REACTION NAME", style=style)
-			sheet.write(0, 2, "REACTION", style=style)
-			sheet.write(0, 3, "METABOLITE ID", style=style)
-			sheet.write(0, 4, "METABOLITE NAME", style=style)
+			sheet.write(0, 1, "METABOLITE ID", style=style)
 			i = 1
 			for (reaction, metabolite) in chokepoints:
 				sheet.write(i, 0, reaction.id)
-				sheet.write(i, 1, reaction.name)
-				sheet.write(i, 2, reaction.reaction)
-				sheet.write(i, 3, metabolite.id)
-				sheet.write(i, 4, metabolite.name)
+				sheet.write(i, 1, metabolite.id)
 				i = i + 1
+
+	def spreadsheet_write_reversible_reactions(self, sheet_name, state_initial, state_fva, ordered=False):
+		""" 
+		"""
+		if self.__spreadsheet is None:
+			self.spreadsheet_init()
+
+		reactions = state_initial.reactions()
+		if ordered:
+			reactions.sort(key=self.__id)
+
+		reversible_initial = state_initial.reversible_reactions()
+		reversible_fva = state_fva.reversible_reactions()
+
+		style = xlwt.XFStyle()
+		font = xlwt.Font()
+		font.bold = True
+		style.font = font
+		sheet = self.__spreadsheet.add_sheet(sheet_name)
+		sheet.write(0, 0, "REACTION ID", style=style)
+		sheet.write(0, 1, "REVERSIBLE INITIAL", style=style)
+		sheet.write(0, 2, "REVERSIBLE FVA", style=style)
+		i = 1			
+		for reaction in reactions:
+			sheet.write(i, 0, reaction.id)
+			if reaction.id in reversible_initial:
+				sheet.write(i, 1, "TRUE")
+			if reaction.id in reversible_fva:
+				sheet.write(i, 2, "TRUE")
+			i = i + 1
 
 
 	def __reaction_id_fva(self, obj):
@@ -527,9 +544,9 @@ class Spreadsheet:
 		font = xlwt.Font()
 		font.bold = True
 		style.font = font
-		sheet = self.__spreadsheet.add_sheet(sheet_name)
+		sheet = self.__spreadsheet.add_sheet(sheet_name, cell_overwrite_ok=True)
 		sheet.write(0, 0, "REACTION ID", style=style)
-		sheet.write(0, 1, "REACTION NAME", style=style)
+		sheet.write(0, 1, "REACTION", style=style)
 		sheet.write(0, 2, "CHOKEPOINT INITIAL", style=style)
 		sheet.write(0, 3, "CHOKEPOINT AFTER DEM REMOVE", style=style)
 		sheet.write(0, 4, "CHOKEPOINT AFTER FVA", style=style)
@@ -537,27 +554,39 @@ class Spreadsheet:
 		i = 1
 		for reaction in reactions:
 			sheet.write(i, 0, reaction.id)
-			sheet.write(i, 1, reaction.name)
+			sheet.write(i, 1, reaction.reaction)
 			j = 0
 			if reaction.id in initial_chokepoints_dict:
 				for metabolite in initial_chokepoints_dict[reaction.id]:
 					sheet.write(i + j, 2, metabolite)
+					sheet.write(i + j, 6, " ")
 					j = j + 1
+			else:
+				sheet.write(i + j, 2, " ")
 			k = 0
 			if reaction.id in chokepoints_dem_dict:
 				for metabolite in chokepoints_dem_dict[reaction.id]:
 					sheet.write(i + k, 3, metabolite)
+					sheet.write(i + k, 6, " ")
 					k = k + 1
+			else:
+				sheet.write(i + k, 3, " ")
 			l = 0
 			if reaction.id in chokepoints_fva_dict:
 				for metabolite in chokepoints_fva_dict[reaction.id]:
 					sheet.write(i + l, 4, metabolite)
+					sheet.write(i + l, 6, " ")
 					l = l + 1
+			else:
+				sheet.write(i + l, 4, " ")
 			m = 0
 			if reaction.id in chokepoints_fva_dem_dict:
 				for metabolite in chokepoints_fva_dem_dict[reaction.id]:
 					sheet.write(i + m, 5, metabolite)
+					sheet.write(i + m, 6, " ")
 					m = m + 1
+			else:
+				sheet.write(i + m,5, " ")
 			maxim = max(j,k,l,m)
 			if maxim == 0:
 				i = i + 1
@@ -649,7 +678,7 @@ class Spreadsheet:
 		style.font = font
 
 		sheet = self.__spreadsheet.add_sheet(sheet_name)
-		sheet.write(1, 0, "REACTION ID")
+		sheet.write(1, 0, "REACTION ID", style=style)
 		sheet.write(0, 2, "INITIAL MODEL", style=style)
 		sheet.write(0, 6, "MODEL AFTER D.E.M. REMOVED", style=style)
 		sheet.write(0, 10, "MODEL AFTER F.V.A.", style=style)
@@ -679,6 +708,7 @@ class Spreadsheet:
 				reaction = reaction_obj.id
 				if j == 2:
 					sheet.write(i, 0, reaction)
+					sheet.write(i, 1, " ")
 				if reaction in chokepoints.keys():
 					sheet.write(i, j, "TRUE")
 				if reaction in genes_reactions.keys():
@@ -741,8 +771,10 @@ class Spreadsheet:
 				else:
 					er_g0.append(reaction)
 					er_g005.append(reaction)
+		
+		reversibles = state.reversible_reactions()
 
-		return [dem, chokepoints_dict, essential_genes, genes_reactions_dict, essential_reactions, er_g0, er_g005]
+		return [dem, chokepoints_dict, essential_genes, genes_reactions_dict, essential_reactions, er_g0, er_g005, reversibles]
 
 
 	#
@@ -754,6 +786,7 @@ class Spreadsheet:
 		sheet.write(x + 5, y + 1, "Essential genes reactions", style=style)
 		sheet.write(x + 6, y + 1, "Essential reactions (objective=0)", style=style)
 		sheet.write(x + 7, y + 1, "Essential reactions (objective < 5% max objective)", style=style)
+		sheet.write(x + 8, y + 1, "Reversible reactions", style=style)
 		sheet.write(x + 1, y + 2, "Before", style=style)
 		sheet.write(x + 1, y + 3, "After", style=style)
 		sheet.write(x + 1, y + 5, "Only before", style=style)
@@ -823,6 +856,7 @@ class Spreadsheet:
 		sheet.write(x + 5, y + 1, "Essential genes reactions", style=style)
 		sheet.write(x + 6, y + 1, "Essential reactions (objective=0)", style=style)
 		sheet.write(x + 7, y + 1, "Essential reactions (objective < 5% max objective)", style=style)
+		sheet.write(x + 8, y + 1, "Reversible reactions", style=style)
 		sheet.write(x + 1, y + 2, "Only: initial model", style=style)
 		sheet.write(x + 1, y + 3, "Only: model without D.E.M.", style=style)
 		sheet.write(x + 1, y + 4, "Only: model updated with F.V.A.", style=style)
@@ -936,16 +970,16 @@ class Spreadsheet:
 			y = y + 1
 
 		self.__aux_spreadsheet_write_two_model_summary(sheet, style, 7, 0, "INITIAL MODEL BEFORE AND AFTER F.V.A.", list_model_initial_results, list_model_fva_results)
-		self.__aux_spreadsheet_write_two_model_summary(sheet, style, 17, 0, "INITIAL MODEL BEFORE AND AFTER D.E.M. REMOVAL", list_model_initial_results, list_model_dem_results)
-		self.__aux_spreadsheet_write_two_model_summary(sheet, style, 27, 0, "MODEL FIRST UPDATED WITH F.V.A. BEFORE AND AFTER D.E.M. REMOVAL", list_model_fva_results, list_model_fvadem_results)
+		self.__aux_spreadsheet_write_two_model_summary(sheet, style, 18, 0, "INITIAL MODEL BEFORE AND AFTER D.E.M. REMOVAL", list_model_initial_results, list_model_dem_results)
+		self.__aux_spreadsheet_write_two_model_summary(sheet, style, 29, 0, "MODEL FIRST UPDATED WITH F.V.A. BEFORE AND AFTER D.E.M. REMOVAL", list_model_fva_results, list_model_fvadem_results)
 
-		self.__aux_spreadsheet_write_four_model_summary(sheet, style, 37, 0, "FOUR MODEL COMPARISON", models)
+		self.__aux_spreadsheet_write_four_model_summary(sheet, style, 40, 0, "FOUR MODEL COMPARISON", models)
 
-		self.__aux_write_four_model_two_summary(sheet, style, 47, 0, "CHOKEPOINT REACTIONS - ESSENTIAL GENES REACTIONS", "Only chokepoint reaction", reactions_data[0], "Only essential genes reactions", reactions_data[1])
-		self.__aux_write_four_model_two_summary(sheet, style, 55, 0, "CHOKEPOINT REACTIONS - ESSENTIAL REACTIONS (objectite value < 5% max objective value)", "Only chokepoints", reactions_data[0], "Only essential reactions", reactions_data[2])
-		self.__aux_write_four_model_two_summary(sheet, style, 63, 0, "ESSENTIAL GENES REACTIONS - ESSENTIAL REACTIONS (objectite value < 5% max objective value)", "Only essential genes reactions",  reactions_data[1], "Only essential reactions", reactions_data[2])
+		self.__aux_write_four_model_two_summary(sheet, style, 51, 0, "CHOKEPOINT REACTIONS - ESSENTIAL GENES REACTIONS", "Only chokepoint reaction", reactions_data[0], "Only essential genes reactions", reactions_data[1])
+		self.__aux_write_four_model_two_summary(sheet, style, 58, 0, "CHOKEPOINT REACTIONS - ESSENTIAL REACTIONS (objectite value < 5% max objective value)", "Only chokepoints", reactions_data[0], "Only essential reactions", reactions_data[2])
+		self.__aux_write_four_model_two_summary(sheet, style, 66, 0, "ESSENTIAL GENES REACTIONS - ESSENTIAL REACTIONS (objectite value < 5% max objective value)", "Only essential genes reactions",  reactions_data[1], "Only essential reactions", reactions_data[2])
 
-		self.__aux_write_four_model_two_summary(sheet, style, 70, 0, "CHOKEPOINT REACTIONS - ESSENTIAL GENES REACTIONS - ESSENTIAL REACTIONS (objectite value < 5% max objective value)", "Only chokepoints reactions", reactions_data[0], "Only essential genes reactions",  reactions_data[1], "Only essential reactions", reactions_data[2])
+		self.__aux_write_four_model_two_summary(sheet, style, 74, 0, "CHOKEPOINT REACTIONS - ESSENTIAL GENES REACTIONS - ESSENTIAL REACTIONS (objectite value < 5% max objective value)", "Only chokepoints reactions", reactions_data[0], "Only essential genes reactions",  reactions_data[1], "Only essential reactions", reactions_data[2])
 
 	def spreadsheet_save_file(self, filename):
 		""" Saves the xlwt Workbook '__spreadsheet' to a valid file.

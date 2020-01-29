@@ -1,5 +1,10 @@
+import threading
+import inspect
+import ctypes
+import time
+
 from FacadeUtils import FacadeUtils
-from FacadeThread import FacadeThread
+from FacadeThread import FacadeThread, ThreadInterrupt
 
 TASK_READ_MODEL = "READ_MODEL"
 TASK_SAVE_DEM = "SAVE_DEM"
@@ -34,13 +39,15 @@ class Facade:
 	def stop_tid(self, tid):
 		try:
 			ThreadInterrupt._async_raise(tid, ThreadInterrupt, syserr=False)
-			# print("STOPPING")
+			print("STOPPING")
 			while self.isAlive_tid(tid):
 				time.sleep(0.1)
-				# print("STOPPING")
+				print("STOPPING")
 				ThreadInterrupt._async_raise(tid, ThreadInterrupt, syserr=False)
 		except Exception as errr:
 			# Thread stopped - catch some derivated errors
+			#print("DEBUG: PLEASE REMOVE THIS RAISE IN Facade.py")
+			#raise errr
 			pass
 
 	def get_tid(self):
@@ -48,10 +55,12 @@ class Facade:
 
 	def stop(self):
 		try:
-			tid = self.get_tid()
+			tid = self.get_tid()			
 			self.stop_tid(tid)
-		except Exception:
+		except Exception as exc:
 			# Thread is already stopped
+			#print("DEBUG: PLEASE REMOVE THIS RAISE IN Facade.py")
+			#raise exc			
 			pass
 
 	def set_model_path(self, model_path):
@@ -78,16 +87,16 @@ class Facade:
 	def get_model_info(self):
 		return (self.model_id, self.reactions, self.metabolites, self.genes)
 
-	def generate_spreadsheet(self, stoppable, model_path, print_f, args1=None, args2=None, output_path=None):
+	def generate_spreadsheet(self, stoppable, model_path, print_f, args1=None, args2=None, output_path=None, objective=None):
 		if not stoppable:
 			f = FacadeUtils()
-			self.spreadsheet = f.run_summary_model(model_path, print_f, args1, args2)
+			self.spreadsheet = f.run_summary_model(model_path, print_f, args1, args2, objective)
 			if self.spreadsheet is not None and output_path is not None:
 				self.save_spreadsheet(stoppable, output_path, print_f)
 			return ""
 		else:
 			self.thread1 = FacadeThread(self.model_path)
-			self.thread1.set_task(TASK_SPREADSHEET, print_f, args1, args2, output_path)
+			self.thread1.set_task(TASK_SPREADSHEET, print_f, args1, args2, output_path, objective=objective)
 			self.thread1.start()
 			self.tid = self.thread1.get_my_tid()
 
@@ -115,27 +124,27 @@ class Facade:
 			self.thread1.start()
 			self.tid = self.thread1.get_my_tid()
 
-	def run_fva(self, stoppable, output_path, print_f, model_path, args1=None, args2=None):
+	def run_fva(self, stoppable, output_path, print_f, model_path, args1=None, args2=None, objective=None):
 		if not stoppable:
 			f = FacadeUtils()
-			(self.model, errors) = f.run_fva(model_path)
+			(self.model, errors) = f.run_fva(model_path, objective)
 			return errors
 		else:
 			self.thread1 = FacadeThread(self.model_path)
 			self.thread1.set_task(TASK_SAVE_FVA, notify_function=print_f, args1=args1, args2=None,
-			                      output_path=output_path)
+			                      output_path=output_path, objective=objective)
 			self.thread1.start()
 			self.tid = self.thread1.get_my_tid()
 
-	def run_fva_remove_dem(self, stoppable, output_path, print_f, model_path, args1=None, args2=None):
+	def run_fva_remove_dem(self, stoppable, output_path, print_f, model_path, args1=None, args2=None, objective=None):
 		if not stoppable:
 			f = FacadeUtils()
-			(self.model, errors) = f.run_fva_remove_dem(model_path)
+			(self.model, errors) = f.run_fva_remove_dem(model_path, objective)
 			return errors
 		else:
 			self.thread1 = FacadeThread(self.model_path)
 			self.thread1.set_task(TASK_SAVE_FVA_DEM, notify_function=print_f, args1=args1, args2=None,
-			                      output_path=output_path)
+			                      output_path=output_path, objective=objective)
 			self.thread1.start()
 			self.tid = self.thread1.get_my_tid()
 
