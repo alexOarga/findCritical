@@ -212,7 +212,17 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		:rtype: list([ cobra.core.reaction ])
 		"""
 		return list(filter(lambda x: self.__reaction_direction(x) == self._Direction.REVERSIBLE, self.__cobra_model.reactions))
-		
+
+	def dead_reactions(self):
+		""" Returns a list of reactions with upper bound = 0 AND lower bound = 0
+
+		:return: List of cobra.core.reaction with dead-reactions
+		:rtype: list([ cobra.core.reaction ])
+		"""
+		return list(filter(lambda reaction: abs(reaction.upper_bound) < CONST_EPSILON and abs(reaction.lower_bound) < CONST_EPSILON, self.__cobra_model.reactions))
+
+	def exchange_demand_reactions(self):
+		return self.__exchange_demand_reactions
 
 	def __id(self, e):
 		return e.id
@@ -344,6 +354,10 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			return self._Direction.REVERSIBLE
 		else:
 			return self._Direction.BACKWARD
+
+
+	def __is_dead_reaction(self, reaction):
+		return abs(reaction.upper_bound) < CONST_EPSILON and abs(reaction.lower_bound) < CONST_EPSILON
 
 
 	def find_dem_2(self, compartment="ALL"):
@@ -520,7 +534,7 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		return obj.reaction.id
 
 
-	def find_chokepoints(self):
+	def find_chokepoints(self, exclude_dead_reactions=False):
 		""" Finds chokepoint reactions of the cobra model
 
 		Returns: List of objects of class _MetaboliteReact containing a chokepoint reaction
@@ -531,27 +545,29 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		products = []	# List of products metabolites with it's reaction
 		for reaction in self.__cobra_model.reactions:
 			direction = self.__reaction_direction(reaction)
-			if direction == self._Direction.REVERSIBLE:
-				# If reaction is reversible all metabolites are reactants and products
-				for metabolite in reaction.metabolites:
-					mtb = self._MetaboliteReact(metabolite, reaction)
-					reactants.append(mtb)
-					products.append(mtb)
-			else:
-				if direction == self._Direction.FORWARD:
-					reac_reactants = reaction.reactants
-					reac_prodcuts = reaction.products
+			is_dead_reaction = self.__is_dead_reaction(reaction)
+			if (not exclude_dead_reactions) or (exclude_dead_reactions and not is_dead_reaction):
+				if direction == self._Direction.REVERSIBLE:
+					# If reaction is reversible all metabolites are reactants and products
+					for metabolite in reaction.metabolites:
+						mtb = self._MetaboliteReact(metabolite, reaction)
+						reactants.append(mtb)
+						products.append(mtb)
 				else:
-					# If reaction is backward reactants=products and products=reactants
-					reac_reactants = reaction.products
-					reac_prodcuts = reaction.reactants
-				# add reactants and products of the reaction to the list
-				for metabolite in reac_prodcuts:
-					mtb = self._MetaboliteReact(metabolite, reaction)
-					products.append(mtb)
-				for metabolite in reac_reactants:
-					mtb = self._MetaboliteReact(metabolite, reaction)
-					reactants.append(mtb)
+					if direction == self._Direction.FORWARD:
+						reac_reactants = reaction.reactants
+						reac_prodcuts = reaction.products
+					else:
+						# If reaction is backward reactants=products and products=reactants
+						reac_reactants = reaction.products
+						reac_prodcuts = reaction.reactants
+					# add reactants and products of the reaction to the list
+					for metabolite in reac_prodcuts:
+						mtb = self._MetaboliteReact(metabolite, reaction)
+						products.append(mtb)
+					for metabolite in reac_reactants:
+						mtb = self._MetaboliteReact(metabolite, reaction)
+						reactants.append(mtb)
 
 		# Order lists
 		reactants.sort(key=self.__metabolite_id)
