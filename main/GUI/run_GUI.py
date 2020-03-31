@@ -1,7 +1,7 @@
 import sys, os
 
 from PyQt5.QtWidgets import QGroupBox, QVBoxLayout, QMessageBox, QMainWindow, QApplication, QWidget, QPushButton, \
-	QFileDialog, QPlainTextEdit, QLabel, QHBoxLayout, QAction, QSizePolicy, QSpacerItem, QTextBrowser, QDialog,  QTextBrowser, QComboBox
+	QFileDialog, QPlainTextEdit, QLabel, QHBoxLayout, QAction, QSizePolicy, QSpacerItem, QTextBrowser, QDialog,  QTextBrowser, QComboBox, QInputDialog
 from PyQt5.QtGui import QMovie
 from PyQt5.QtCore import pyqtSignal, Qt, QByteArray, pyqtSignal, QThread, QRect, QSize
 from libsbml import _libsbml
@@ -70,11 +70,16 @@ class Model:
 	facade = None
 
 	objective = None
+	fraction = float(1.0)
 
 	def read_file(self):
 		(fname, AllFiles) = QFileDialog.getOpenFileName(self.app, 'Open model file')
 		self.model_path = fname
 		return fname
+
+	def set_fraction(self):
+		(selected_fraction, error) = QInputDialog.getDouble(self.app, "title", "label", value=1.0, min=0.0, max=1.0, decimals=3)
+		self.fraction = float(selected_fraction)
 
 	def save_model_to_file(self):
 		(name, All) = QFileDialog.getSaveFileName(self.app, 'Save Model File')
@@ -147,24 +152,24 @@ class Model:
 			elif task == TASK_SAVE_FVA:
 				self.generic_log_issue()
 				self.log("Updating model with Flux Variability Analysis... Please wait.")
-				self.facade.run_fva(True, None, self.notify_work_model_done, self.model_path, objective=objective)
+				self.facade.run_fva(True, None, self.notify_work_model_done, self.model_path, objective=objective, fraction=self.fraction)
 			elif task == TASK_SAVE_FVA_DEM:
 				self.generic_log_issue()
 				self.log("Updating model with Flux Variability Analysis, finding and removing dead-end metabolites... Please wait.")
-				self.facade.run_fva_remove_dem(True, None, self.notify_work_model_done, self.model_path, objective=objective)
+				self.facade.run_fva_remove_dem(True, None, self.notify_work_model_done, self.model_path, objective=objective, fraction=self.fraction)
 			elif task == TASK_SPREADSHEET:
 				self.generic_log_issue()
-				self.facade.generate_spreadsheet(True, self.model_path, self.notify_log, args1=None, args2=None, output_path=None, objective=objective)
+				self.facade.generate_spreadsheet(True, self.model_path, self.notify_log, args1=None, args2=None, output_path=None, objective=objective, fraction=self.fraction)
 			elif task == TASK_SAVE_SPREADSHEET:
 				self.save_spreadsheet_to_file(self.notify_saving_spreadsheet)
 			elif task == TASK_SAVE_MODEL:
 				self.save_model_to_file()
 
 		except Exception as error:
-			# THread stopped
-			# TODO: REMOVE THIS
-			print("DEBUG: REMOVE THIS RAISE IN run_GUI.py")
-			raise error
+			# Thread stopped
+			#print("DEBUG: REMOVE THIS RAISE IN run_GUI.py")
+			#raise error
+			pass
 
 	def find_and_remove_dem(self):
 		log_msg = "Searching Dead End Metabolites...\n"
@@ -436,14 +441,22 @@ class View:
 		text.setWordWrap(True)
 		vbox.addWidget(text)
 		vbox.addWidget(QLabel("<br>"))
-		self.text2 = QLabel("Select objective function:")
+		self.text2 = QLabel("<strong>Step 1: </strong> Select objective function:")
 		self.text2.setWordWrap(True)
 		vbox.addWidget(self.text2)
 		self.cb = QComboBox()
 		self.cb.addItems(["Default"] + reactions_list)
 		self.cb.currentIndexChanged.connect(self.selectionchange)
 		vbox.addWidget(self.cb)
+	
+		self.text3 = QLabel("<strong>Step 2: </strong>Select FVA fraction:")
+		self.text3.setWordWrap(True)
+		vbox.addWidget(self.text3)
+		self.set_fraction.show()
+		vbox.addWidget(self.set_fraction)
+
 		vbox.addStretch()
+
 		self.log = QPlainTextEdit()
 		self.log.resize(WIDTH * 0.9, HEIGHT * 0.8)
 		self.log.setPlainText("")
@@ -455,8 +468,10 @@ class View:
 		self.win.setLayout(vbox)
 		self.win.show()
 
-	def hide_objective_show_log(self):
+	def hide_pre_work_show_log(self):
 		self.text2.hide()
+		self.text3.hide()
+		self.set_fraction.hide()
 		self.cb.hide()
 		self.log.show()
 
@@ -510,6 +525,7 @@ class View:
 		self.button_spread = QPushButton("Save spreadsheet")
 		self.cancel_working = QPushButton('Cancel')
 		self.start_working = QPushButton('Start')
+		self.set_fraction = QPushButton('Set FVA fraction')
 		self.change_model = QPushButton('<- Change model', self.window)
 
 		# Hide buttons
@@ -522,6 +538,7 @@ class View:
 		self.cancel_working.hide()
 		self.change_model.hide()
 		self.start_working.hide()
+		self.set_fraction.hide()
 
 
 
@@ -577,12 +594,15 @@ class Controller:
 	def clicked_start_working(self):
 		self.view.show_cancel_button()
 		if self.task == TASK_SPREADSHEET:
-			self.view.hide_objective_show_log()
+			self.view.hide_pre_work_show_log()
 		if self.task == TASK_SAVE_FVA:
-			self.view.hide_objective_show_log()
+			self.view.hide_pre_work_show_log()
 		if self.task == TASK_SAVE_FVA_DEM:
-			self.view.hide_objective_show_log()		
+			self.view.hide_pre_work_show_log()		
 		self.model.run_task(self.signal_model, self.task)
+
+	def clicked_set_fraction(self):
+		self.model.set_fraction()
 
 	def work_task(self, task):
 		if task == TASK_SPREADSHEET:
@@ -691,6 +711,7 @@ class Controller:
 		self.view.cancel_working.clicked.connect(self.clicked_cancel_working)
 		self.view.change_model.clicked.connect(self.clicked_change_model)
 		self.view.start_working.clicked.connect(self.clicked_start_working)
+		self.view.set_fraction.clicked.connect(self.clicked_set_fraction)
 
 		# Init execution
 		self.view.show_initial_load()

@@ -774,7 +774,9 @@ class Spreadsheet:
 		
 		reversibles = state.reversible_reactions()
 
-		return [dem, chokepoints_dict, essential_genes, genes_reactions_dict, essential_reactions, er_g0, er_g005, reversibles]
+		dead_reactions = state.dead_reactions()
+
+		return [dem, list(chokepoints_dict.keys()), essential_genes, genes_reactions_dict, essential_reactions, er_g0, er_g005, reversibles, dead_reactions]
 
 
 	#
@@ -787,6 +789,7 @@ class Spreadsheet:
 		sheet.write(x + 6, y + 1, "Essential reactions (objective=0)", style=style)
 		sheet.write(x + 7, y + 1, "Essential reactions (objective < 5% max objective)", style=style)
 		sheet.write(x + 8, y + 1, "Reversible reactions", style=style)
+		sheet.write(x + 9, y + 1, "Dead reactions", style=style)
 		sheet.write(x + 1, y + 2, "Before", style=style)
 		sheet.write(x + 1, y + 3, "After", style=style)
 		sheet.write(x + 1, y + 5, "Only before", style=style)
@@ -943,6 +946,9 @@ class Spreadsheet:
 		list_metabolites = [len(state_initial.metabolites()), len(state_dem.metabolites()), len(state_fva.metabolites()), len(state_fva_dem.metabolites())]
 		list_reactions = [len(state_initial.reactions()), len(state_dem.reactions()), len(state_fva.reactions()), len(state_fva_dem.reactions())]
 
+		# 1: list(chokepoints_dict.keys()),
+		# 3: genes_reactions_dict, 
+		# 5: er_g0
 		reactions_data = []
 		for i in [1,3,5]:
 			rdl = [list_model_initial_results[i], list_model_dem_results[i], list_model_fva_results[i], list_model_fvadem_results[i]]

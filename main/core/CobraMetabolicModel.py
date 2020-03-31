@@ -26,7 +26,7 @@ import ctypes
 
 
 
-CONST_EPSILON = 0.000006
+CONST_EPSILON = 0.000005
 
 class NullDevice():
 	def write(self, s):
@@ -599,11 +599,13 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 				while j < len(products) and products[j].metabolite.id == mtb2:
 					num2 = num2 + 1
 					j = j + 1
-				if num1 == 1 and num2 >= 1:
+				#if num1 == 1 and num2 >= 1:
+				if num1 == 1:
 					chokepoints.append(reactants[i - 1])
 					if num2 == 1:
 						chokepoints.append(products[j - 1])
-				elif num2 == 1 and num1 >= 1:
+				#elif num2 == 1 and num1 >= 1:
+				elif num2 == 1:
 					chokepoints.append(products[j - 1])
 					if num1 == 1:
 						chokepoints.append(reactants[i - 1])
@@ -706,9 +708,9 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			fva_result = []
 			# Run FVA analysis
 			if threshold is None and pfba_factor is None:
-				fva_reactions = flux_variability_analysis(self.__cobra_model, loopless=loopless,  processes=1)
+				fva_reactions = flux_variability_analysis(self.__cobra_model, loopless=loopless)
 			else:
-				fva_reactions = flux_variability_analysis(self.__cobra_model, loopless=loopless, processes=1, fraction_of_optimum=threshold,  pfba_factor=pfba_factor)
+				fva_reactions = flux_variability_analysis(self.__cobra_model, loopless=loopless, fraction_of_optimum=threshold,  pfba_factor=pfba_factor)
 			for reaction_id in fva_reactions.index:
 				reaction = self.__cobra_model.reactions.get_by_id(reaction_id)
 				fva_lower = float(fva_reactions.values[i][0])

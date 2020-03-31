@@ -146,6 +146,12 @@ class State:
 	def set_reversible_reactions(self, reversible_reactions):
 		self.__reversible_reactions = reversible_reactions
 
+	def dead_reactions(self):
+		return self.__dead_reactions
+
+	def set_dead_reactions(self, dead_reactions):
+		self.__dead_reactions = dead_reactions
+
 
 class CobraMetabolicStateBuilder:
 
@@ -159,6 +165,7 @@ class CobraMetabolicStateBuilder:
 		state.set_objective(self.objective(model))
 		state.set_objective_value(self.objective_value(model))
 		state.set_reversible_reactions(self.reversible_reactions(model))
+		state.set_dead_reactions(self.dead_reactions(model))
 		(metabolites, reactions, genes) = self.metabolic_network(model)
 		state.set_reactions(reactions)
 		state.set_metabolites(metabolites)
@@ -308,3 +315,6 @@ class CobraMetabolicStateBuilder:
 
 	def reversible_reactions(self, model):
 		return [r.id for r in model.reversible_reactions()]
+
+	def dead_reactions(self, model):
+		return [r.id for r in model.dead_reactions()]

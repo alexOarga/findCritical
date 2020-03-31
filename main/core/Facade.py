@@ -87,16 +87,16 @@ class Facade:
 	def get_model_info(self):
 		return (self.model_id, self.reactions, self.metabolites, self.genes)
 
-	def generate_spreadsheet(self, stoppable, model_path, print_f, args1=None, args2=None, output_path=None, objective=None):
+	def generate_spreadsheet(self, stoppable, model_path, print_f, args1=None, args2=None, output_path=None, objective=None, fraction=1.0):
 		if not stoppable:
 			f = FacadeUtils()
-			self.spreadsheet = f.run_summary_model(model_path, print_f, args1, args2, objective)
+			self.spreadsheet = f.run_summary_model(model_path, print_f, args1, args2, objective, fraction)
 			if self.spreadsheet is not None and output_path is not None:
 				self.save_spreadsheet(stoppable, output_path, print_f)
 			return ""
 		else:
 			self.thread1 = FacadeThread(self.model_path)
-			self.thread1.set_task(TASK_SPREADSHEET, print_f, args1, args2, output_path, objective=objective)
+			self.thread1.set_task(TASK_SPREADSHEET, print_f, args1, args2, output_path, objective=objective, fraction=fraction)
 			self.thread1.start()
 			self.tid = self.thread1.get_my_tid()
 
@@ -124,27 +124,27 @@ class Facade:
 			self.thread1.start()
 			self.tid = self.thread1.get_my_tid()
 
-	def run_fva(self, stoppable, output_path, print_f, model_path, args1=None, args2=None, objective=None):
+	def run_fva(self, stoppable, output_path, print_f, model_path, args1=None, args2=None, objective=None, fraction=1.0):
 		if not stoppable:
 			f = FacadeUtils()
-			(self.model, errors) = f.run_fva(model_path, objective)
+			(self.model, errors) = f.run_fva(model_path, objective, fraction)
 			return errors
 		else:
 			self.thread1 = FacadeThread(self.model_path)
 			self.thread1.set_task(TASK_SAVE_FVA, notify_function=print_f, args1=args1, args2=None,
-			                      output_path=output_path, objective=objective)
+			                      output_path=output_path, objective=objective, fraction=fraction)
 			self.thread1.start()
 			self.tid = self.thread1.get_my_tid()
 
-	def run_fva_remove_dem(self, stoppable, output_path, print_f, model_path, args1=None, args2=None, objective=None):
+	def run_fva_remove_dem(self, stoppable, output_path, print_f, model_path, args1=None, args2=None, objective=None, fraction=1.0):
 		if not stoppable:
 			f = FacadeUtils()
-			(self.model, errors) = f.run_fva_remove_dem(model_path, objective)
+			(self.model, errors) = f.run_fva_remove_dem(model_path, objective, fraction)
 			return errors
 		else:
 			self.thread1 = FacadeThread(self.model_path)
 			self.thread1.set_task(TASK_SAVE_FVA_DEM, notify_function=print_f, args1=args1, args2=None,
-			                      output_path=output_path, objective=objective)
+			                      output_path=output_path, objective=objective, fraction=fraction)
 			self.thread1.start()
 			self.tid = self.thread1.get_my_tid()
 

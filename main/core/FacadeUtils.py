@@ -7,7 +7,7 @@ class ErrorGeneratingModel(Exception):
 
 
 class FacadeUtils:
-	def run_summary_model(self, model_path, print_f, arg1, arg2, objective=None):
+	def run_summary_model(self, model_path, print_f, arg1, arg2, objective=None, fraction=1.0):
 		#verboseprint = print if verbose else lambda *a, **k: None
 
 		print_f("Reading model...", arg1, arg2)
@@ -26,19 +26,13 @@ class FacadeUtils:
 		s.spreadsheet_write_metabolites(model, "metabolites", ordered=True, print_reactions=True)
 		s.spreadsheet_write_genes(model, "genes", ordered=True, print_reactions=True)
 
-		i = 0
-		for reaction in model.reactions():
-			if "<=>" in reaction.reaction:
-				i = i + 1
-		print("Initial reversibles: ", i)
-
 		print_f("Generating models...", arg1, arg2)
 
 		model.find_essential_genes_reactions()
 		print_f("Searching Dead End Metabolites (D.E.M.)...", arg1, arg2)
 		model.find_dem()
 		print_f("Searching chokepoint reactions...", arg1, arg2)
-		model.find_chokepoints()
+		model.find_chokepoints(exclude_dead_reactions=True)
 		print_f("Searching essential reactions...", arg1, arg2)
 		model.find_essential_reactions_1()
 		print_f("Searching essential genes...", arg1, arg2)
@@ -57,7 +51,7 @@ class FacadeUtils:
 		print_f("Searching essential reactions...", arg1, arg2)
 		model.find_essential_reactions_1()
 		print_f("Searching new chokepoint reactions...", arg1, arg2)
-		model.find_chokepoints()
+		model.find_chokepoints(exclude_dead_reactions=True)
 
 		if errors_initial == []:
 			print_f("Searching essential genes...", arg1, arg2)
@@ -77,13 +71,7 @@ class FacadeUtils:
 
 		if objective is not None:
 			model.set_objective(objective)
-		errors_fva = model.fva(update_flux=True)
-
-		i = 0
-		for reaction in model.reactions():
-			if "<=>" in reaction.reaction:
-				i = i + 1
-		print("FVA reversibles: ", i)
+		errors_fva = model.fva(update_flux=True, threshold=fraction)
 
 		if errors_fva != []:
 			MSG = "Couldn't run Flux Variability Analysis: " + str(errors_fva[0])
@@ -92,7 +80,7 @@ class FacadeUtils:
 			print_f("Searching Dead End Metabolites (D.E.M.)...", arg1, arg2)
 			model.find_dem()
 			print_f("Searching new chokepoint reactions...", arg1, arg2)
-			model.find_chokepoints()
+			model.find_chokepoints(exclude_dead_reactions=True)
 			print_f("Searching essential genes...", arg1, arg2)
 			errors_fva_genes = model.find_essential_genes_1()
 			if errors_fva_genes != []:
@@ -114,7 +102,7 @@ class FacadeUtils:
 			print_f("Searching essential reactions...", arg1, arg2)
 			model.find_essential_reactions_1()
 			print_f("Searching new chokepoint reactions...", arg1, arg2)
-			model.find_chokepoints()
+			model.find_chokepoints(exclude_dead_reactions=True)
 			if errors_fva_genes == []:
 				print_f("Searching essential genes...", arg1, arg2)
 				model.find_essential_genes_1()
@@ -122,11 +110,6 @@ class FacadeUtils:
 				model.find_essential_genes_reactions()
 
 			model.set_state("fva_dem")
-
-		#model = MetabolicModel(CobraMetabolicModel(model_path))
-		#errors_fva = model.fva(update_flux=True, threshold=0.1)
-		#if errors_fva == []:
-		#	s.spreadsheet_write_reactions(model, "reactions_FVA_010", ordered=True)
 
 		print_f("Generating spreadsheet...", arg1, arg2)
 		s.spreadsheet_write_reversible_reactions("reversible reactions", model.get_state("initial"), model.get_state("fva"), ordered=True)
@@ -152,22 +135,22 @@ class FacadeUtils:
 		model.remove_dem()
 		return model
 
-	def run_fva(self, model_path, objective=None):
+	def run_fva(self, model_path, objective=None, fraction=1.0):
 		model = MetabolicModel(CobraMetabolicModel(model_path))
 		if objective is not None:
 			model.set_objective(objective)
 		errors_fva = model.fva(update_flux=True)
-		errors = model.fva(update_flux=True)
+		errors = model.fva(update_flux=True, threshold=fraction)
 		if errors != []:
 			return (model, errors[0])
 		else:
 			return (model, "")
 
-	def run_fva_remove_dem(self, model_path, objective=None):
+	def run_fva_remove_dem(self, model_path, objective=None, fraction=1.0):
 		model = MetabolicModel(CobraMetabolicModel(model_path))
 		if objective is not None:
 			model.set_objective(objective)
-		errors = model.fva(update_flux=True)
+		errors = model.fva(update_flux=True, threshold=fraction)
 		if errors != []:
 			return (model, errors[0])
 		else:
@@ -205,7 +188,7 @@ class FacadeUtils:
 			return (True, None, model, model_id, reactions, metabolites, genes, reactions_list)
 		except Exception as error:
 			print(error)
-			return (False, str(error), None, None, None, None, None)
+			return (False, str(error), None, None, None, None, None, None)
 
 	def print_something(self):
 		pass

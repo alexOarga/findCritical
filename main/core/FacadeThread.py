@@ -92,13 +92,14 @@ class FacadeThread(threading.Thread):
 		self.model_path = model_path
 		super(FacadeThread, self).__init__()
 
-	def set_task(self, task, notify_function=None, args1=None, args2=None, output_path=None, objective=None):
+	def set_task(self, task, notify_function=None, args1=None, args2=None, output_path=None, objective=None, fraction=1.0):
 		self.task = task
 		self.notify_function = notify_function
 		self.args1=args1
 		self.args2=args2
 		self.output_path = output_path
 		self.objective = objective
+		self.fraction = fraction
 
 
 	def run(self):
@@ -117,7 +118,7 @@ class FacadeThread(threading.Thread):
 
 			elif self.task == TASK_SAVE_FVA:
 				f = FacadeUtils()
-				(self.model, error) = f.run_fva(self.model_path, objective=self.objective)
+				(self.model, error) = f.run_fva(self.model_path, objective=self.objective, fraction=self.fraction)
 				result_ok = error == ""
 				if result_ok:
 					if self.output_path is not None and self.model is not None:
@@ -128,7 +129,7 @@ class FacadeThread(threading.Thread):
 
 			elif self.task == TASK_SAVE_FVA_DEM:
 				f = FacadeUtils()
-				(self.model, error) = f.run_fva_remove_dem(self.model_path, objective=self.objective)
+				(self.model, error) = f.run_fva_remove_dem(self.model_path, objective=self.objective, fraction=self.fraction)
 				result_ok = error == ""
 				if result_ok:
 					if self.output_path is not None and self.model is not None:
@@ -139,7 +140,7 @@ class FacadeThread(threading.Thread):
 
 			elif self.task == TASK_SPREADSHEET:
 				f = FacadeUtils()
-				s = f.run_summary_model(self.model_path, self.notify_function, self.args1, None, objective=self.objective)
+				s = f.run_summary_model(self.model_path, self.notify_function, self.args1, None, objective=self.objective, fraction=self.fraction)
 				self.spreadsheet = s
 				if self.output_path is not None:
 					(result_ok, error) = f.save_spreadsheet(self.output_path, s)
@@ -160,7 +161,7 @@ class FacadeThread(threading.Thread):
 			# Thread stopped
 			# This raise is just for debugging purposes
 			#print("DEBUG: please remove in FacadeThread.py:", str(error))
-			#raise error
+			raise error
 			print("Error:", str(error))
 			pass
 

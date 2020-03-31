@@ -73,8 +73,8 @@ class MetabolicModel(AbstractMetabolicModel):
 	def find_dem(self, compartment="ALL"):
 		return self.__model.find_dem(compartment)
 
-	def find_chokepoints(self):
-		return self.__model.find_chokepoints()
+	def find_chokepoints(self, exclude_dead_reactions=False):
+		return self.__model.find_chokepoints(exclude_dead_reactions)
 	
 	def remove_dem(self, delete_exchange=False, keep_all_incomplete_reactions=True):
 		self.__model.remove_dem(delete_exchange, keep_all_incomplete_reactions)

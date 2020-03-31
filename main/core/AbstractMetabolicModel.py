@@ -108,8 +108,11 @@ class AbstractMetabolicModel(ABC):
 
 
 	@abstractmethod
-	def find_chokepoints(self):
+	def find_chokepoints(self, exclude_dead_reactions):
 		""" Finds the chokepoint reactions of the metabolic network
+
+		Args:
+			loopless (): Exclude dead reactions from the computed list of chokepoints
 
 		"""
 		pass

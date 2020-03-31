@@ -6,10 +6,10 @@ sys.setrecursionlimit(5000) # or more
 block_cipher = None
 
 
-a = Analysis(['core\\run_GUI.py'],
-             pathex=['Z:\\src', 'Z:\\src\\core'],
+a = Analysis(['..\\..\\main\\GUI\\run_GUI.py'],
+             pathex=['Z:..\\..\\src\\main\\GUI', 'Z:..\\..\\src\\main\\core'],
              binaries=[],
-             datas=[('core\\loading.gif', '.')],
+             datas=[('..\\..\\main\\core\\loading.gif', '.')],
              hiddenimports=['libsbml', 'PyQt5.sip', 'lzma', '_lzma' ,'backports.lzma'],
              hookspath=[],
              runtime_hooks=[],
