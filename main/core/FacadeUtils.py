@@ -1,3 +1,5 @@
+import xlwt
+
 from MetabolicModel import MetabolicModel
 from CobraMetabolicModel import CobraMetabolicModel
 from Spreadsheet import Spreadsheet
@@ -7,6 +9,88 @@ class ErrorGeneratingModel(Exception):
 
 
 class FacadeUtils:
+
+	def run_sensibility_analysis(self, model_path, print_f, arg1, arg2, objective=None):
+		s = xlwt.Workbook()
+		style = xlwt.XFStyle()
+		font = xlwt.Font()
+		font.bold = True
+		style.font = font
+		sheet = s.add_sheet("main")
+
+		FRAC = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+
+		print_f("Reading model...", arg1, arg2)
+		MODEL = model_path
+		model = CobraMetabolicModel(MODEL)
+		if objective is not None:
+			model.set_objective(objective)
+
+		reversible_initial = set([r.id for r in list(filter(lambda x: model.reaction_direction(x)==model._Direction.REVERSIBLE, model.reactions()))])
+		dead_reactions_initial = set([r.id for r in model.dead_reactions()])
+		nr_initial = set([r.id for r in model.reactions()]).difference(dead_reactions_initial).difference(reversible_initial)
+
+		model.find_chokepoints(exclude_dead_reactions=True)
+		chokepoints_initial = set({})
+		for (reaction, metabolite) in model.chokepoints():
+			chokepoints_initial.add(reaction.id)
+		chokepoints_initial = chokepoints_initial.difference(dead_reactions_initial)
+
+		sheet.write(0,0, "Model", style=style)
+		sheet.write(2,0, "Reactions", style=style)
+		sheet.write(4,0, "Metabolites", style=style)	
+		sheet.write(1,   0, model.id())
+		sheet.write(3,   0, len(model.reactions()))
+		sheet.write(5,   0, len(model.metabolites()))
+
+		y = 1
+		for i in range(0, len(FRAC)):
+		
+			print_f("Running Flux Variability Analysis with fraction: " + str(FRAC[i]), arg1, arg2)
+			model = CobraMetabolicModel(MODEL)
+			if objective is not None:
+				model.set_objective(objective)
+			model.fva(update_flux=True, threshold=FRAC[i])
+
+			fva_dead_reactions = set([r.id for r in model.dead_reactions()])
+			fva_reversible = set([r.id for r in list(filter(lambda x: model.reaction_direction(x)==model._Direction.REVERSIBLE, model.reactions()))])
+
+			nr = set([r.id for r in model.reactions()]).difference(fva_reversible).difference(fva_dead_reactions)
+
+			#nnrr = reversible_initial.difference(fva_reversible).difference(fva_dead_reactions)
+
+			model.find_chokepoints(exclude_dead_reactions=True)
+			chokepoints = set({})
+			for (reaction, metabolite) in model.chokepoints():
+				chokepoints.add(reaction.id)
+			test1 = len(chokepoints)
+			chokepoints = chokepoints.difference(fva_dead_reactions)
+			test2 = len(chokepoints)
+			assert(test1 == test2)
+
+			sheet.write(0, i+4, "gamma = " + str(FRAC[i]), style=style)
+			sheet.write(y, i+4, len(fva_reversible))
+			sheet.write(y+1, i+4, len(nr))
+			sheet.write(y+2, i+4, len(fva_dead_reactions))
+			sheet.write(y+3, i+4, len(chokepoints))
+
+		sheet.write(y, 2, "RR", style=style)
+		sheet.write(y+1, 2, "NR", style=style)
+		sheet.write(y+2, 2, "DR", style=style)
+		sheet.write(y+3,   2, "CP", style=style)
+
+		sheet.write(0,3, "INITIAL", style=style)
+		sheet.write(y, 3, len(reversible_initial))
+		sheet.write(y+1, 3, len(nr_initial))
+		sheet.write(y+2, 3, len(dead_reactions_initial))
+		sheet.write(y+3,   3, len(chokepoints_initial))
+		
+		y = y + 5
+
+		sObject = Spreadsheet()
+		sObject.set_workbook(s)
+		return sObject
+
 	def run_summary_model(self, model_path, print_f, arg1, arg2, objective=None, fraction=1.0):
 		#verboseprint = print if verbose else lambda *a, **k: None
 

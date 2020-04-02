@@ -10,6 +10,7 @@ TASK_SAVE_DEM = "SAVE_DEM"
 TASK_SAVE_FVA = "SAVE_FVA"
 TASK_SAVE_FVA_DEM = "SAVE_FVA_DEM"
 TASK_SPREADSHEET = "SPREADSHEET"
+TASK_SENSIBILITY = "TASK_SENSIBILITY"
 TASK_SAVE_SPREADSHEET = "SAVE_SPREADSHEET"
 TASK_FIND_AND_REMOVE_DEM = "TASK_FIND_AND_REMOVE_DEM"
 TASK_SAVE_MODEL = "TASK_SAVE_MODEL"
@@ -146,6 +147,14 @@ class FacadeThread(threading.Thread):
 					(result_ok, error) = f.save_spreadsheet(self.output_path, s)
 				self.notify_function("text", self.args1, self.args2, ended=True, result=True, error=None)
 
+			elif self.task == TASK_SENSIBILITY:
+				f = FacadeUtils()
+				s = f.run_sensibility_analysis(self.model_path, self.notify_function, self.args1, None, objective=self.objective)
+				self.spreadsheet = s
+				if self.output_path is not None:
+					(result_ok, error) = f.save_spreadsheet(self.output_path, s)
+				self.notify_function("text", self.args1, self.args2, ended=True, result=True, error=None)
+
 			elif self.task == TASK_SAVE_SPREADSHEET:
 				f = FacadeUtils()
 				s = self.spreadsheet
@@ -160,7 +169,7 @@ class FacadeThread(threading.Thread):
 		except Exception as error:
 			# Thread stopped
 			# This raise is just for debugging purposes
-			#print("DEBUG: please remove in FacadeThread.py:", str(error))
+			print("DEBUG: please remove in FacadeThread.py:", str(error))
 			raise error
 			print("Error:", str(error))
 			pass

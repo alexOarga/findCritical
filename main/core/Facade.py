@@ -11,6 +11,7 @@ TASK_SAVE_DEM = "SAVE_DEM"
 TASK_SAVE_FVA = "SAVE_FVA"
 TASK_SAVE_FVA_DEM = "SAVE_FVA_DEM"
 TASK_SPREADSHEET = "SPREADSHEET"
+TASK_SENSIBILITY = "TASK_SENSIBILITY"
 TASK_SAVE_SPREADSHEET = "SAVE_SPREADSHEET"
 TASK_FIND_AND_REMOVE_DEM = "TASK_FIND_AND_REMOVE_DEM"
 TASK_SAVE_MODEL = "TASK_SAVE_MODEL"
@@ -97,6 +98,19 @@ class Facade:
 		else:
 			self.thread1 = FacadeThread(self.model_path)
 			self.thread1.set_task(TASK_SPREADSHEET, print_f, args1, args2, output_path, objective=objective, fraction=fraction)
+			self.thread1.start()
+			self.tid = self.thread1.get_my_tid()
+
+	def generate_sensibility_spreadsheet(self, stoppable, model_path, print_f, args1=None, args2=None, output_path=None, objective=None):
+		if not stoppable:
+			f = FacadeUtils()
+			self.spreadsheet = f.run_sensibility_analysis(model_path, print_f, args1, args2, objective)
+			if self.spreadsheet is not None and output_path is not None:
+				self.save_spreadsheet(stoppable, output_path, print_f)
+			return ""
+		else:
+			self.thread1 = FacadeThread(self.model_path)
+			self.thread1.set_task(TASK_SENSIBILITY, print_f, args1, args2, output_path, objective=objective)
 			self.thread1.start()
 			self.tid = self.thread1.get_my_tid()
 

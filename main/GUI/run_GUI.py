@@ -21,6 +21,7 @@ TASK_SAVE_DEM = "SAVE_DEM"
 TASK_SAVE_FVA = "SAVE_FVA"
 TASK_SAVE_FVA_DEM = "SAVE_FVA_DEM"
 TASK_SPREADSHEET = "SPREADSHEET"
+TASK_SENSIBILITY = "TASK_SENSIBILITY"
 TASK_SAVE_SPREADSHEET = "SAVE_SPREADSHEET"
 TASK_SAVE_MODEL = "TASK_SAVE_MODEL"
 
@@ -38,6 +39,8 @@ EVENT_SAVE_FILE_FINISH = "EVENT_SAVE_FILE_FINISH"
 EVENT_WORK_FINISH = "EVENT_WORK_FINISH"
 EVENT_WORK_TASK = "EVENT_WORK_TASK"
 EVENT_SET_OBJECTIVE = "EVENT_SET_OBJECTIVE"
+
+GITHUB = "https://github.com/alexOarga/findCritical/issues"
 
 # Some Windows errors make the app to restart. Avoided temporarely with the 'RUNNING' flag.
 RUNNING = False
@@ -123,7 +126,6 @@ class Model:
 		else:
 			self.signal.emit({"event": EVENT_SAVE_SPREADSHEET_DONE, "log": msg})
 
-
 	def notify_saving_spreadsheet(self, msg, arg1=None, arg2=None, ended=False, result=False, error=None):
 		self.signal.emit({"event":  EVENT_SAVE_SPREADSHEET_FILE_DONE, "success": result, "result": error})
 
@@ -134,7 +136,7 @@ class Model:
 		self.signal.emit({"event": EVENT_WORK_FINISH, "success": result, "result": error})
 
 	def generic_log_issue(self):
-		self.signal.emit({"event": EVENT_LOG, "log": "Please report any issue to: https://github.com/alexOarga/findCritical/issues"})
+		self.signal.emit({"event": EVENT_LOG, "log": "Please report any issue to: " + GITHUB})
 
 	def run(self, task):
 		try:
@@ -160,6 +162,9 @@ class Model:
 			elif task == TASK_SPREADSHEET:
 				self.generic_log_issue()
 				self.facade.generate_spreadsheet(True, self.model_path, self.notify_log, args1=None, args2=None, output_path=None, objective=objective, fraction=self.fraction)
+			elif task == TASK_SENSIBILITY:
+				self.generic_log_issue()
+				self.facade.generate_sensibility_spreadsheet(True, self.model_path, self.notify_log, args1=None, args2=None, output_path=None, objective=objective)
 			elif task == TASK_SAVE_SPREADSHEET:
 				self.save_spreadsheet_to_file(self.notify_saving_spreadsheet)
 			elif task == TASK_SAVE_MODEL:
@@ -350,22 +355,23 @@ class View:
 		                           "<br> &nbsp;&nbsp; Reactions: " + str(reactions)  +
 		                           "<br> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;  Genes: " + str(genes)
 		                           , self.window)
-		self.text_loading.setGeometry(QRect((WIDTH / 2) - 70, -10, WIDTH - 60, HEIGHT / 2))
+		self.text_loading.setGeometry(QRect((WIDTH / 2) - 70, -5, WIDTH - 60, HEIGHT/2 ))
 		self.text_loading.setWordWrap(True)
 		self.text_loading.show()
 
 		self.win = QWidget(self.window)
 		self.win.setGeometry(0, HEIGHT * 0.4, WIDTH, HEIGHT * 0.6)
 
-		text_spread = QLabel()
-		text_spread.setText(
-			"Generate spreadsheet file with model data, dead-end metabolites, chokepoints reactions and if feasible essential genes and reactions")
-		text_spread.setWordWrap(True)
+		#text_spread = QLabel()
+		#text_spread.setText(
+		#	"Generate spreadsheet file with model data, dead-end metabolites, chokepoints reactions and if feasible essential genes and reactions")
+		#text_spread.setWordWrap(True)
 
 		group1 = QGroupBox("Save results")
 		vbox1 = QVBoxLayout()
-		vbox1.addWidget(text_spread)
+		#vbox1.addWidget(text_spread)
 		vbox1.addWidget(self.button_spread)
+		vbox1.addWidget(self.button_sensibility)
 		group1.setLayout(vbox1)
 
 		group2 = QGroupBox("Save model file")
@@ -386,6 +392,7 @@ class View:
 		self.button_fva.show()
 		self.button_fva_dem.show()
 		self.button_spread.show()
+		self.button_sensibility.show()
 		self.win.show()
 
 	def hide_main(self):
@@ -395,13 +402,10 @@ class View:
 		self.button_fva.hide()
 		self.button_fva_dem.hide()
 		self.button_spread.hide()
+		self.button_sensibility.hide()
 		self.win.hide()
 
-	def show_working_window(self, task):
-		self.win = QWidget(self.window)
-		self.win.setGeometry(0, 20, WIDTH, HEIGHT-20)
-
-		vbox = QVBoxLayout()
+	def get_text_task(self, task):
 		text = QLabel("<strong>Task: </strong> Null")
 		if task == TASK_SAVE_DEM:
 			text = QLabel("<strong>Task: </strong> Save model without Dead-End Metabolites")
@@ -413,6 +417,17 @@ class View:
 				"<strong>Task: </strong> Save model with reaction bounds updated with Flux Variability Analysis and with Dead-End Metabolites removed")
 		elif task == TASK_SPREADSHEET:
 			text = QLabel("<strong>Task: </strong> Generating spreadsheet with results")
+		elif task == TASK_SENSIBILITY:
+			text = QLabel("<strong>Task: </strong> Generating spreadsheet with chokepoint sensibility analysis")
+		
+		return text
+
+	def show_working_window(self, task):
+		self.win = QWidget(self.window)
+		self.win.setGeometry(0, 20, WIDTH, HEIGHT-20)
+
+		vbox = QVBoxLayout()
+		text = self.get_text_task(task)
 		text.setWordWrap(True)
 		vbox.addWidget(text)
 		vbox.addStretch()
@@ -437,7 +452,7 @@ class View:
 		self.win.setGeometry(0, 20, WIDTH, HEIGHT-20)
 
 		vbox = QVBoxLayout()
-		text = QLabel("<strong>Task: </strong> Generating spreadsheet with results")
+		text = self.get_text_task(task)
 		text.setWordWrap(True)
 		vbox.addWidget(text)
 		vbox.addWidget(QLabel("<br>"))
@@ -449,7 +464,7 @@ class View:
 		self.cb.currentIndexChanged.connect(self.selectionchange)
 		vbox.addWidget(self.cb)
 	
-		self.text3 = QLabel("<strong>Step 2: </strong>Select FVA fraction:")
+		self.text3 = QLabel("<strong>Step 2: </strong>Select FVA fraction (default: 1.0):")
 		self.text3.setWordWrap(True)
 		vbox.addWidget(self.text3)
 		self.set_fraction.show()
@@ -468,10 +483,47 @@ class View:
 		self.win.setLayout(vbox)
 		self.win.show()
 
+	def show_working_window_objective_no_fva_fraction(self, task, reactions_list):
+		self.signal.emit({"event": EVENT_SET_OBJECTIVE, "result": None})
+
+		self.win = QWidget(self.window)
+		self.win.setGeometry(0, 20, WIDTH, HEIGHT-20)
+
+		vbox = QVBoxLayout()
+		text = self.get_text_task(task)
+		text.setWordWrap(True)
+		vbox.addWidget(text)
+		vbox.addWidget(QLabel("<br>"))
+		self.text2 = QLabel("<strong>Step 1: </strong> Select objective function:")
+		self.text2.setWordWrap(True)
+		vbox.addWidget(self.text2)
+		self.cb = QComboBox()
+		self.cb.addItems(["Default"] + reactions_list)
+		self.cb.currentIndexChanged.connect(self.selectionchange)
+		vbox.addWidget(self.cb)
+		vbox.addStretch()
+
+		self.log = QPlainTextEdit()
+		self.log.resize(WIDTH * 0.9, HEIGHT * 0.8)
+		self.log.setPlainText("")
+		self.log.hide()
+		vbox.addWidget(self.log)
+		vbox.addWidget(self.start_working)
+		vbox.addWidget(self.cancel_working)
+		self.show_start_button()
+		self.win.setLayout(vbox)
+		self.win.show()
+
+
 	def hide_pre_work_show_log(self):
 		self.text2.hide()
 		self.text3.hide()
 		self.set_fraction.hide()
+		self.cb.hide()
+		self.log.show()
+
+	def hide_pre_work_show_log_no_fva_fraction(self):
+		self.text2.hide()
 		self.cb.hide()
 		self.log.show()
 
@@ -519,10 +571,11 @@ class View:
 		# Define buttons
 		self.cancel_read = QPushButton('Cancel', self.window)
 		self.load_model = QPushButton('Select SBML model', self.window)
-		self.button_dem = QPushButton("Save model without Dead-End\n Metabolites (D.E.M.).")
-		self.button_fva = QPushButton("Save model updated with Flux\n Variability Analysis (F.V.A.)")
-		self.button_fva_dem = QPushButton("Save model updated with F.V.A. and\n without D.E.M.")
-		self.button_spread = QPushButton("Save spreadsheet")
+		self.button_dem = QPushButton("Save model without\n Dead-End Metabolites (D.E.M.).")
+		self.button_fva = QPushButton("Save model updated with\n Flux Variability Analysis (F.V.A.)")
+		self.button_fva_dem = QPushButton("Save model updated\n with F.V.A. and without D.E.M.")
+		self.button_spread = QPushButton("Save results \n comparision\n spreadsheet")
+		self.button_sensibility = QPushButton("Save chokepoints \n sensibility analysis\n spreadsheet")
 		self.cancel_working = QPushButton('Cancel')
 		self.start_working = QPushButton('Start')
 		self.set_fraction = QPushButton('Set FVA fraction')
@@ -535,6 +588,7 @@ class View:
 		self.button_fva.hide()
 		self.button_fva_dem.hide()
 		self.button_spread.hide()
+		self.button_sensibility.hide()
 		self.cancel_working.hide()
 		self.change_model.hide()
 		self.start_working.hide()
@@ -579,6 +633,10 @@ class Controller:
 		self.task = TASK_SPREADSHEET
 		self.work_task(self.task)
 
+	def clicked_save_sensibility(self):
+		self.task = TASK_SENSIBILITY
+		self.work_task(self.task)
+
 	def clicked_cancel_working(self):
 		self.view.set_cancel_working_button_disabled()
 		self.model.stop()
@@ -598,7 +656,9 @@ class Controller:
 		if self.task == TASK_SAVE_FVA:
 			self.view.hide_pre_work_show_log()
 		if self.task == TASK_SAVE_FVA_DEM:
-			self.view.hide_pre_work_show_log()		
+			self.view.hide_pre_work_show_log()
+		if self.task == TASK_SENSIBILITY:
+			self.view.hide_pre_work_show_log_no_fva_fraction()		
 		self.model.run_task(self.signal_model, self.task)
 
 	def clicked_set_fraction(self):
@@ -614,6 +674,9 @@ class Controller:
 		elif task == TASK_SAVE_FVA_DEM:
 			self.view.hide_main()
 			self.view.show_working_window_objective(task, self.model.reactions_list)	
+		elif task == TASK_SENSIBILITY:
+			self.view.hide_main()
+			self.view.show_working_window_objective_no_fva_fraction(task, self.model.reactions_list)
 		else:
 			self.view.hide_main()
 			self.view.show_working_window(task)
@@ -708,6 +771,7 @@ class Controller:
 		self.view.button_fva.clicked.connect(self.clicked_save_fva)
 		self.view.button_fva_dem.clicked.connect(self.clicked_save_fva_dem)
 		self.view.button_spread.clicked.connect(self.clicked_save_spreadsheet)
+		self.view.button_sensibility.clicked.connect(self.clicked_save_sensibility)
 		self.view.cancel_working.clicked.connect(self.clicked_cancel_working)
 		self.view.change_model.clicked.connect(self.clicked_change_model)
 		self.view.start_working.clicked.connect(self.clicked_start_working)
@@ -729,7 +793,7 @@ class App(QMainWindow):
 
 	def show_help(self):
 		MSG = "<h3>Issues</h3> <br>" \
-		      "Please report any issues to https://github.com/alexOarga/findCritical/issues <br> " \
+		      "Please report any issues to " + GITHUB + " <br> " \
 		      "<br>" \
 		      "<h3>Steps</h3> <br> " \
 		      "<strong>Step 1:</strong> Click 'Select SBML model' and upload a valid SBML model. The file format must be xml, json, yml or mat. Wait until the application reads the input file. <br>" \
@@ -791,11 +855,11 @@ class App(QMainWindow):
 
 			self.show()
 		except Exception as error:
-			print("This error shouldn't had happened. Please report it at https://github.com/alexOarga/findCritical/issues")
+			print("This error shouldn't had happened. Please report it at " + GITHUB)
 			msg = QMessageBox(self)
 			msg.setIcon(QMessageBox.Warning)
 			msg.setText("Fatal error just occurred. ")
-			msg.setInformativeText("This error shouldn't had happened. Please report it at https://github.com/alexOarga/findCritical/issues")
+			msg.setInformativeText("This error shouldn't had happened. Please report it at " + GITHUB)
 			msg.setWindowTitle("Error")
 			msg.setStandardButtons(QMessageBox.Ok)
 			horizontalSpacer = QSpacerItem(500, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)

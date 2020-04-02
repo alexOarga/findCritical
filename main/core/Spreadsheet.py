@@ -13,6 +13,10 @@ class Spreadsheet:
 		"""
 		self.__spreadsheet = xlwt.Workbook()
 
+	def set_workbook(self, workbook):
+		self.__spreadsheet = workbook
+		
+
 	def spreadsheet_write_model_info(self, state, sheet_name):
 		""" Writes in a sheet of the xlwt Workbook '__spreadsheet' info of the model with the following format:
 
