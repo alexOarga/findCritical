@@ -6,9 +6,9 @@ The documentation can be found at [readthedocs](https://findcritical.readthedocs
 
 # Download
 ### Windows
-[windows-v1.0.0.zip](https://github.com/alexOarga/findCritical/releases/download/v1.0.0/windows.zip)
+[windows-v1.1.0.zip](https://github.com/alexOarga/findCritical/releases/download/v1.1.0/windows-v1.1.0.zip)
 ### Linux
-[linux-v1.0.0.zip](https://github.com/alexOarga/findCritical/releases/download/v1.0.0/linux.zip)
+[linux-v1.1.0.zip](https://github.com/alexOarga/findCritical/releases/download/v1.1.0/linux-v1.1.0.zip)
 
 # Source
 ## Table of Contents
