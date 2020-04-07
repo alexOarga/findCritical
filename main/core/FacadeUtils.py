@@ -50,7 +50,16 @@ class FacadeUtils:
 			model = CobraMetabolicModel(MODEL)
 			if objective is not None:
 				model.set_objective(objective)
-			model.fva(update_flux=True, threshold=FRAC[i])
+			errors_fva = model.fva(update_flux=True, threshold=FRAC[i])
+
+			if errors_fva != []:
+				print_f("Couldn't run Flux Variability Analysis: " + str(errors_fva[0]), arg1, arg2)
+				sheet.write(0, i+4, "gamma = " + str(FRAC[i]), style=style)
+				sheet.write(y, i+4, "Error running FVA: " + str(errors_fva[0]))
+				sheet.write(y+1, i+4, "Error running FVA: " + str(errors_fva[0]))
+				sheet.write(y+2, i+4, "Error running FVA: " + str(errors_fva[0]))
+				sheet.write(y+3, i+4, "Error running FVA: " + str(errors_fva[0]))
+				continue
 
 			fva_dead_reactions = set([r.id for r in model.dead_reactions()])
 			fva_reversible = set([r.id for r in list(filter(lambda x: model.reaction_direction(x)==model._Direction.REVERSIBLE, model.reactions()))])

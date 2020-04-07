@@ -17,14 +17,19 @@ from optlang.exceptions import SolverError
 
 import itertools
 import sys
-
-from time import sleep
 import threading
-from multiprocessing import Process
 import inspect
 import ctypes
 
+from time import sleep
+from multiprocessing import Process
+from sys import platform
 
+# On windows, when deployed with pyinstaller, FVA and other methods get blocked on multiprocessing.
+if platform == "win32":
+	PROCESSES = 1
+else:
+	PROCESSES = None
 
 CONST_EPSILON = 0.000005
 
@@ -708,9 +713,9 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			fva_result = []
 			# Run FVA analysis
 			if threshold is None and pfba_factor is None:
-				fva_reactions = flux_variability_analysis(self.__cobra_model, loopless=loopless)
+				fva_reactions = flux_variability_analysis(self.__cobra_model, loopless=loopless, processes=PROCESSES)
 			else:
-				fva_reactions = flux_variability_analysis(self.__cobra_model, loopless=loopless, fraction_of_optimum=threshold,  pfba_factor=pfba_factor)
+				fva_reactions = flux_variability_analysis(self.__cobra_model, loopless=loopless, fraction_of_optimum=threshold,  pfba_factor=pfba_factor, processes=PROCESSES)
 			for reaction_id in fva_reactions.index:
 				reaction = self.__cobra_model.reactions.get_by_id(reaction_id)
 				fva_lower = float(fva_reactions.values[i][0])
@@ -770,7 +775,7 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 			if isnan(self.__objective_value):
 				self.__objective_value = None
 			self.__essential_reactions = {}
-			deletions = single_reaction_deletion(self.__cobra_model, method='fba', processes=1)
+			deletions = single_reaction_deletion(self.__cobra_model, method='fba', processes=PROCESSES)
 			essential = deletions.loc[:, :]['growth']
 			for frozset in essential.index.values:
 				reaction = self.__cobra_model.reactions.get_by_id(list(frozset)[0])
@@ -788,7 +793,7 @@ class CobraMetabolicModel(AbstractMetabolicModel):
 		errors = []
 		try:
 			# TODO: check processes number (because deadlock)
-			aux = cobra.flux_analysis.variability.find_essential_genes(self.__cobra_model, processes=1)
+			aux = cobra.flux_analysis.variability.find_essential_genes(self.__cobra_model, processes=PROCESSES)
 			self.__essential_genes = aux
 		except cobra.exceptions.Infeasible as error:
 			self.__essential_genes = []

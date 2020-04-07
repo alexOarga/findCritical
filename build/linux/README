@@ -1,3 +1,12 @@
-On this folder run:
+# Issue multiarray import
+	pip uninstall numpy
+	pip uninstall scipy
+
+	pip install numpy --upgrade
+	pip install scipy --upgrade
+
+	pip install --upgrade --force-reinstall numpy
+
+# On this folder run:
 	pyinstaller --windowed  -y --dist ./dist/linux --workpath /tmp run_GUI.spec
 
