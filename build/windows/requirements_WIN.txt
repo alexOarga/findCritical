@@ -3,7 +3,7 @@ cobra==0.15.4
 depinfo==1.5.1
 future==0.17.1
 mpmath==1.1.0
-numpy==1.16.4
+numpy==1.22.0
 optlang==1.4.4
 pandas==0.24.2
 pipdeptree==0.13.2
