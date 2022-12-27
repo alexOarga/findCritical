@@ -1,4 +1,4 @@
-setuptools==39.1.0
+setuptools==65.5.1
 cobra==0.15.4
 depinfo==1.5.1
 future==0.17.1
